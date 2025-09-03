@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<head>
+<script src='./datav2.js'></script>
+<script src='./roaddata.js'></script>
+<script src='./runnerdata/run2024.js'></script>
+<script src='./runnerdata/run2025.js'></script>
+<script src='./runnerdata/run2026.js'></script>
+
+<script src='./d3.min.js'></script>
+
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+<title>MEL-SIM sep2025 v4.4</title>
+
+</head>
+<style>
+    table.center {
+  margin-left: auto; 
+  margin-right: auto;
+}
+.text-marker {
+            background-color: white;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 14px;
+            font-weight: bold;
+            transform: rotate(45deg); /* Rotate the text by 45 degrees */
+            transform-origin: center; /* Keep the rotation centered */
+        }
+
+</style>
+<body>
+    <button id="vbut" onclick="variante1 = !variante1;
+    selector ++
+    if(selector == 3){selector = 0}
+    if(selector == 0 )
+        {d3.select('#vbut').text('Runners 2024')}
+    if (selector == 1){
+                d3.select('#vbut').text('Runners 2025')}
+    if (selector == 2){
+                d3.select('#vbut').text('Runners 2026')}
+
+        ;    zeitgewahlt(Math.round(tim) )">Runners 2024
+        </button>
+
+    <button id="cvbut" onclick="roadvariante1 = !roadvariante1;
+    if(roadvariante1){d3.select('#cvbut').text('Route 2024'); coordinates = coordinatesold;console.log('alteccord')
+    for (const key in coordinates) {
+        for (i=0;i<coordinatesold[key].length-1;i++){
+            pointjsons[key].features[i].geometry.coordinates = coordinatesold[key][i];
+          linejsons[key].features[i].geometry.coordinates = [coordinatesold[key][i],coordinatesold[key][i+1]]
+      
+        }
+        map.getSource('line-segments'+key).setData(linejsons[key])
+        map.getSource('circles'+key).setData(pointjsons[key])
+    }
+    }
+    else{d3.select('#cvbut').text('Route 2025'); coordinates = coordinatesnew;;console.log('neueccord')
+    for (const key in coordinates) {
+        for (i=0;i<coordinatesnew[key].length-1;i++){
+            pointjsons[key].features[i].geometry.coordinates = coordinatesnew[key][i];
+          linejsons[key].features[i].geometry.coordinates = [coordinatesnew[key][i],coordinatesnew[key][i+1]]
+      
+        }
+        map.getSource('line-segments'+key).setData(linejsons[key])
+        map.getSource('circles'+key).setData(pointjsons[key])
+    }
+    };  
+    
+    
+
+
+    zeitgewahlt(Math.round(tim) )">Route 2025</button>
+    
+    <button id="playbut" onclick="play = !play;
+    if(!play){d3.select('#playbut').text('play')
+    zeitgewahlt(Math.round(tim) )
+
+
+}else{d3.select('#playbut').text('stop')
+// d3.select('#realbutton').text('realtime')
+realtime = false
+}
+
+
+    ">play</button>
+
+
+<!--
+     <button id="realbutton" onclick="realtime = !realtime;
+     console.log(tim)
+        if(!realtime){d3.select('#realbutton').text('realtime')
+         zeitgewahlt(Math.round(tim) )
+        }else{d3.select('#realbutton').text('stop')
+        d3.select('#playbut').text('play')
+        play = false
+        }
+             ">realtime</button>
+
+-->
+
+       <button onclick="       
+       map.setPitch(45);map.setBearing(0);map.setZoom(12);map.setCenter(
+        truecenter
+  )
+
+
+
+
+
+       d3.select('#gu1').property('value','45')
+       d3.select('#gu2').property('value','0')
+       d3.select('#gu3').property('value','15')
+       zeitgewahlt(6.25*60)
+
+       d3.select('#playbut').text('play')
+       play = false
+           ">reset</button>
+ 
+ speed:<input value="1" style="width:2%" id="spedset" type="number" min=1 max=5  onchange="autoplayspeed = this.value/10;console.log('autoplayspeed  '+autoplayspeed)"/>
+
+
+    <input type="range" id ="myRange" style="width: 70%" onchange="
+    if(play == false)
+  {  tim = Math.round(this.value) ; zeitgewahlt(Math.round(tim) )}"
+
+             value=375 min=360 max=840 step=1/>
+            
+             <table class="center">
+                <tr>
+
+
+                    <td>time: </td>
+                    <td><span id="uhr">06:15</span></td>
+                <td></td>
+                    <td>guntime:</td>
+                    <td><span id="gunuhr">00:00</span></td>
+                </tr>
+            </table>
+    <div id="map" style="width: 100%; height:95vh;"></div>
+ 
+    
+  
+     
+            <br>
+            pitch: <input id="gu1" type="number" style="width:4%" value =45 step=1 min=15 max=90 oninput="map.setPitch(90-this.value)"/>
+            bearing: <input id="gu2" type="number" style="width:4%" value=0 step=1 min=-90 max=90 oninput="map.setBearing(this.value)"/>
+            zoom: <input id="gu3" type="number" style="width:4%" value =15 step=0.1 min=12 max=17 oninput="map.setZoom(this.value)"/>
+    <!--        <table>
+           
+                <tr>
+                    <td>marathon start:</td>
+                    <td><input id="maratimset" type="time" value="12:01" onchange="delay.mara = convertTimeToMinutes(this.value); zeitgewahlt(Math.round(tim));   
+                    localStorage.setItem(key, JSON.stringify(delay));"/></td>
+                </tr>
+             
+             
+            </table>
+ -->
+<br>  
+<br> 
+<br>   
+    <!--
+    <input type="range" onchange="map.setPitch(this.value);" min=20 max=90 step=5/>
+    <input type="range" onchange="map.setBearing(this.value);" min=-90 max=90 step=5/>
+  
+
+
+
+
+<button onclick="
+!coltoggle
+if (coltoggle){
+    colorScale ={ mara: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'red','black']),
+            
+            maraslow: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'yellow','black']),
+            
+            half: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'blue','black']),tenkm: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'green','black']),fivekm: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'pink','black']),twofivekm: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ '#09ebdc','black'])
+
+
+  }}else{
+    colorScale ={    mara: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'red','red']),
+            
+            maraslow: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'yellow','yellow']),
+            
+            half: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'blue','blue']),tenkm: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'green','green']),fivekm: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ 'pink','pink']),twofivekm: d3.scaleLinear()
+            .domain([0, 500])  // Input domain
+            .range([ '#09ebdc','#09ebdc'])
+    }
+}
+
+
+">color scheme</button>
+-->
+
+<table>
+           
+    <tr>
+        <td>marathon start:</td>
+        <td><input id="maratimset" type="time" value="12:01" onchange="delay.mara = convertTimeToMinutes(this.value);delay.maraslow = convertTimeToMinutes(this.value);delay.marafull = convertTimeToMinutes(this.value); zeitgewahlt(Math.round(tim));   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+    </tr>
+    <tr>
+        <td>half marathon start:</td>
+        <td><input id="halftimset" type="time" value="12:01" onchange="delay.half = convertTimeToMinutes(this.value); zeitgewahlt(Math.round(tim));   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+    </tr>
+    <tr>
+        <td>10 km start:</td>
+        <td> <input id="tenkmtimset" type="time" value="12:01" onchange="delay.tenkm = convertTimeToMinutes(this.value); zeitgewahlt(Math.round(tim));   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+    </tr>
+
+
+
+</body>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+</style>
+<script>
+
+       coordinatesnew.mara.forEach((item) => {
+item[1] = item[1]+0.00003;
+item[0] = item[0]+0.00003}
+ )
+ coordinatesold.mara.forEach((item) => {
+item[1] = item[1]+0.00003;
+item[0] = item[0]+0.00003}
+ )
+ let   coordinates = coordinatesnew
+colorScale = {mara:d3.scaleLinear()
+            .domain([0, 15,40])  // Input domain
+            .range([ "green","yellow","red"]),
+        half:d3.scaleLinear()
+            .domain([0, 15,40])  // Input domain
+            .range([ "blue","yellow","red"]),
+    tenkm:d3.scaleLinear()
+            .domain([0, 15,40])  // Input domain
+            .range([ "pink","yellow","red"])
+
+
+}
+
+colorScale2 = {mara:"red",half:"black",tenkm:"green"}
+
+woist = [run2024,run2025,run2026]
+roadvariante1 = false 
+    variante1 = true
+    selector = 0
+    realtime = false
+    coltoggle=false
+    filast = {mara:{},maraslow:{},half:{},tenkm:{},fivekm:{},twofivekm:{},marafull:{}}
+    autoplayspeed = 0.5
+
+truecenter = coordinates.mara[Math.round(coordinates.mara.length/2)]
+lastmx=100
+  conv = 1609.34 
+waypoints =[
+  //9, 15, 20, 25, 30, 36
+
+/*
+  {name:"Aidstation 1", coordinates:coordinates.mara[Math.round((1.6*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 2", coordinates:coordinates.mara[Math.round((3.25*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 3", coordinates:coordinates.mara[Math.round((5.05*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 4", coordinates:coordinates.mara[Math.round((5.75*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 5", coordinates:coordinates.mara[Math.round((7.3*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 6", coordinates:coordinates.mara[Math.round((8.8*conv)/25)],icon:'url(./water.png)'},
+*/
+{    name:"Finish", coordinates:  coordinates.mara[coordinates.mara.length-1],icon:'url(./finish.png)'},
+{    name:"Start", coordinates: coordinates.mara[0],icon:'url(./start.png)'},
+{    name:"42 elite", coordinates:[0,0],icon:'url(./42.png)'},
+
+{    name:"42 last", coordinates:[0,0],icon:'url(./42B.png)'},
+
+{    name:"21 elite", coordinates:[0,0],icon:'url(./21.png)'},
+{    name:"21 last", coordinates:[0,0],icon:'url(./21B.png)'},
+{    name:"10 first", coordinates:[0,0],icon:'url(./10.png)'},
+
+
+{    name:"10 last", coordinates:[0,0],icon:'url(./10B.png)'}
+
+
+/*
+{name:"Aidstation 7", coordinates:coordinates.mara[Math.round((10.1*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 8", coordinates:coordinates.mara[Math.round((11.5*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 9", coordinates:coordinates.mara[Math.round((12.6*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 10", coordinates:coordinates.mara[Math.round((13.6*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 11", coordinates:coordinates.mara[Math.round((14.6*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 12", coordinates:coordinates.mara[Math.round((15.7*conv)/25)],icon:'url(./water.png)'}, 
+  {name:"Aidstation 13", coordinates:coordinates.mara[Math.round((16.9*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 14", coordinates:coordinates.mara[Math.round((18.2*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 15", coordinates:coordinates.mara[Math.round((19.2*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 16", coordinates:coordinates.mara[Math.round((20.2*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 17", coordinates:coordinates.mara[Math.round((22.3*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 18", coordinates:coordinates.mara[Math.round((23.04*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 19", coordinates:coordinates.mara[Math.round((24.5*conv)/25)],icon:'url(./water.png)'},
+  {name:"Aidstation 19", coordinates:coordinates.mara[Math.round((25.2*conv)/25)],icon:'url(./water.png)'},
+*/
+]
+
+
+ const mengeScale = d3.scaleLinear()
+            .domain([0, 100])  // Input domain
+            .range([ 3,10]); 
+
+           
+racenames={mara:"marathon",half:"halfmarathon",tenkm:"10km run"}
+           cutoff = {mara:20*60,maraslow:8*60+360+60,half:5*60+360+120,tenkm:5*60+360+90,fivekm:3*60+330+360,twofivekm:3*60+360+360}
+
+
+           
+
+
+// Check if the value exists
+
+key= "delay"
+const value = localStorage.getItem(key);
+delay={mara:(6.5*60),half:(8*60),tenkm:(7*60)}
+if (value !== null) {
+  delay = JSON.parse(value)
+  console.log(JSON.parse(value));
+  console.log("gelesen von locals")
+} else {
+    delay={mara:(6.5*60),half:(8*60),tenkm:(7*60)}
+    localStorage.setItem(key, JSON.stringify(delay));
+    console.log('did not exist in local storage.')
+
+}
+
+
+
+
+
+
+
+
+
+tim =60*6.25
+d3.select('#maratimset').property("value",convertMinutesToTime(delay.mara))
+d3.select('#halftimset').property("value",convertMinutesToTime(delay.half))
+d3.select('#tenkmtimset').property("value",convertMinutesToTime(delay.tenkm))
+d3.select("#myRange").property("value", tim);
+d3.select('#fivekmtimset').property("value",convertMinutesToTime(delay.fivekm))
+d3.select('#twofivekmtimset').property("value",convertMinutesToTime(delay.twofivekm))
+d3.select('#spedset').property("value",5)
+linejsons ={}
+pointjsons ={}
+for (const key in coordinates) {
+linejsons[key] = generateColoredGeoJSON(coordinates[key]) 
+pointjsons[key] = coordinatesToGeoJSON(coordinates[key])
+}
+
+play = false
+ initialise_map()
+ function convertTimeToMinutes(time) {
+    // Split the input time into hours and minutes
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Calculate the total minutes
+    const totalMinutes = (hours * 60) + minutes
+    
+    return totalMinutes;
+}
+ function convertMinutesToTime(temp) {
+    // Base time of 6:00 AM
+    
+
+ 
+    const hours = Math.floor(temp / 60);
+    const minutes = temp % 60;
+  
+    // Format hours and minutes into "hh:mm"
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    
+    return `${formattedHours}:${formattedMinutes}`;
+}
+
+ function zeitgewahlt(timr)
+    {
+     /*
+        for(f=11;f<20;f++){
+            markers[f].setLngLat([0,0])
+        }
+            */
+    //tim=timr        
+        d3.select("#myRange").property("value", timr);
+        d3.select('#uhr').text(convertMinutesToTime(Math.round(timr)))
+        d3.select('#gunuhr').text(convertMinutesToTime(Math.max(0,Math.round(timr-delay.mara))))
+ 
+
+
+
+                                    for (const key in coordinates) {
+                                        
+                                        let kk = Math.max(0,timr-delay[key]) 
+                                        kkk =kk
+                                        /*
+                                        mx =d3.max(woist[selector][key][kk].slice(40))
+                                        mx = (mx+lastmx )/2
+                                        mx = Math.round(mx/20)*20
+
+                                        lastmx = mx
+                                        console.log(mx)
+
+                                        colorScale =d3.scaleLinear()
+            .domain([0, mx/2,mx])  // Input domain
+            .range([ "green","yellow","red"])
+
+
+
+*/
+
+
+
+            if (kk<woist[selector][key].length){
+                                    for(i=0;i<coordinates[key].length-1;i++){
+                                       
+                             
+                                                menge = woist[selector][key][kk][i]
+                            
+                                        strokec=0
+                            stroke = Math.min(10,mengeScale(menge))
+                            rad = Math.min(10, mengeScale(menge))
+                            if (menge < 1){stroke=0;rad = 0;strokec=0}
+                            col = colorScale2[key]//(menge)
+                            
+                            if(timr<delay[key] || timr>cutoff[key]+delay[key]){stroke=0;strokec=0,rad=0}
+                           
+      
+                            pointjsons[key].features[i+1].properties.radius = rad*1.5
+                            pointjsons[key].features[i+1].properties.stroke = strokec
+                            pointjsons[key].features[i+1].properties.fill = col
+                          //  pointjsons[key].features[i+1].properties.fill-opacity = 0.5
+                            pointjsons[key].features[i+1].properties.text = "<b>"+racenames[key]+ "</b><br> "+ (i+1)/40+" km / "+ Math.round(((i+1)/40) /(conv/100000))/100+" miles <br>" + convertMinutesToTime(timr) +" <br> "+ menge +" runners/25m "
+                            linejsons[key].features[i].properties.stroke = col
+                            linejsons[key].features[i].properties.width = stroke
+                         //   pointjsons[key].features[i+1].properties.menge = menge2
+                            }}else{ 
+
+                                for(i=0;i<coordinates[key].length-1;i++){
+                                       
+                             
+                                    pointjsons[key].features[i+1].geometry.coordinates = coordinates[key][i+1]
+             //                       linejsons[key].features[i+1].geometry.coordinates = [coordinates[key][i],coordinates[key][i+1]]
+
+                                                         
+                           pointjsons[key].features[i+1].properties.radius = 0
+                           pointjsons[key].features[i+1].properties.stroke = 0
+                           pointjsons[key].features[i+1].properties.fill = "blue"
+                           pointjsons[key].features[i+1].properties.text = "<b>"+racenames[key]+ "</b><br> "+ (i+1)/40+" km <br>" + convertMinutesToTime(timr) +" <br> "+ menge +" runners/25m "
+                           linejsons[key].features[i].properties.stroke = "blue"
+                           linejsons[key].features[i].properties.width = 0}
+
+                            }  
+                          
+                            map.getSource('line-segments'+key).setData(linejsons[key])
+                            map.getSource('circles'+key).setData(pointjsons[key])
+                     
+                            
+                      filast  = findIndices(woist[selector][key][kkk])  
+                      if(key =="mara"){
+                          if (filast[0] != 0 && timr < delay[key]+125) {markers[2].setLngLat(coordinates[key][filast[0]+1])}else{markers[2].setLngLat([0,0])}
+                        if (filast[1] != 0  ) {markers[3].setLngLat(coordinates[key][filast[1]-1])}else{markers[3].setLngLat([0,0])}}
+                        
+                        if(key =="half"){
+                          if (filast[0] != 0 && timr < delay[key]+60) {markers[4].setLngLat(coordinates[key][filast[0]+1])}else{markers[4].setLngLat([0,0])}
+                        if (filast[1] != 0  ) {markers[5].setLngLat(coordinates[key][filast[1]-1])}else{markers[5].setLngLat([0,0])}}
+                        
+                        if(key =="tenkm"){
+                          if (filast[0] != 0 && timr < delay[key]+30) {markers[6].setLngLat(coordinates[key][filast[0]+1])}else{markers[6].setLngLat([0,0])}
+                        if (filast[1] != 0  ) {markers[7].setLngLat(coordinates[key][filast[1]-1])}else{markers[7].setLngLat([0,0])}}
+                       
+                        
+                    //    temp = Math.round(Math.max(0,timr-delay.mara)*3.136)
+                 
+    } }
+ // button zum absoielen
+                        
+                                setInterval(function (){
+                                    if (tim>839){play=false}
+                                    if(play == true){
+                                               tim= tim + autoplayspeed;
+                                        zeitgewahlt(Math.round(tim) )}
+                                    if (realtime == true){
+                                        
+                                       now = new Date()
+                                      tim2 = (now.getHours() * 60) +now.getMinutes()
+                                  //      tim -= 120 
+                                    if (tim2 > 120 && tim2 < 1095.1 )  {  zeitgewahlt(Math.round(tim2) )}
+}
+                            },50)
+                                
+                            function findIndices(arr) {
+    let firstIndex = -1;
+    let lastIndex = -1;
+if(!arr){arr =[0]}
+    // Loop through the array to find the first and last index
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > 0) {
+            if (firstIndex === -1) {
+                firstIndex = i; // Assign the first index
+            }
+            lastIndex = i; // Update the last index
+        }
+    }
+    if(lastIndex > coordinates.mara.length-5||lastIndex ==NaN||lastIndex <0){lastIndex=0}
+    if(firstIndex > coordinates.mara.length-5||firstIndex ==NaN||firstIndex <0){firstIndex=0}
+    return [ lastIndex,firstIndex ];
+}
+
+                           
+                            function findFirstAndLastNonZero(arr,key) {
+    let firstNonZero = null;
+    let lastNonZero = null;
+if(arr)
+    {for (let i = 0; i < arr.length; i++) {
+        if (arr[i] !== 0) {
+            if (firstNonZero === null) {
+                firstNonZero = i;
+            }
+            lastNonZero = i;
+        }
+    }
+}else{ firstNonZero=0
+     lastNonZero =0}
+     
+     if(firstNonZero == null || lastNonZero ==null){firstNonZero=0
+        lastNonZero =0}
+
+        if(lastNonZero > coordinates[key].length-5){lastNonZero=0}
+    return  [ lastNonZero,firstNonZero] ;
+}
+
+
+
+
+
+function coordinatesToGeoJSON(coordinates) {
+    // Ensure the input is an array of coordinates
+    if (!Array.isArray(coordinates) || coordinates.some(coord => !Array.isArray(coord) || coord.length !== 2)) {
+        throw new Error('Invalid input: coordinates should be an array of [longitude, latitude] arrays.');
+    }
+
+    // Create the GeoJSON FeatureCollection
+    const featureCollection = {
+        type: 'FeatureCollection',
+        features: coordinates.map(coord => ({
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: coord
+            },
+            properties: {'radius':0,"stroke":0,'text':"empty"}
+        }))
+    };
+
+    return featureCollection;
+}
+function generateColoredGeoJSON(coordinates) {
+    const colors = ['#ff0000', '#00ff00', '#ffff00', '#0000ff']; // Red, Green, Yellow, Blue
+    let features = [];
+
+    for (let i = 0; i < coordinates.length - 1; i++) {
+        let colorIndex = i % colors.length; // Cycle through colors
+        features.push({
+            "type": "Feature",
+            "properties": {
+                "radius": 0,
+                "width":0,
+                "stroke": colors[colorIndex]
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    coordinates[i],
+                    coordinates[i + 1]
+                ]
+            }
+        });
+    }
+
+    return {
+        "type": "FeatureCollection",
+        "features": features
+    };
+}
+function initialise_map()  { 
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic2FuZHJvc2NobWlkdCIsImEiOiJjbHg3bTMxYmwxMXZiMmtzY2tlN3RjNGY5In0.2whcv8hzfzdyukPAXWwSPw';
+    
+         map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11', // Map style to use
+      center: truecenter, // Starting position [lng, lat]
+    dragRotate: true,
+    minzoom:15,
+      zoom: 12 ,// Starting zoom level
+      pitch: 45, // tilt the map 45 degrees
+      bearing: 0 // rotate the map -17.6 degrees
+    });
+    linesize = 3
+    map.on('load', function () {
+        map.addLayer({
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
+        'paint': {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            ['get', 'height']
+          ],
+          'fill-extrusion-base': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            ['get', 'min_height']
+          ],
+          'fill-extrusion-opacity': 0.6
+        }
+      });
+
+
+
+
+
+        var popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+        for (const key in coordinates) {
+         console.log(key + " gemalt")
+                                                        map.addSource('line-segments'+key, {
+                                                            "type": "geojson",
+                                                            "data": linejsons[key]
+                                                        });
+
+                                                        map.addLayer({
+                                                        "id": "lines-layer-"+key,
+                                                        "type": "line",
+                                                        "source": "line-segments"+key,
+                                                        "paint": {
+                                                            "line-width": ['get', 'width'],
+                                                            "line-color": ['get', 'stroke'],
+                                                            //"line-cap": "round",
+                                                            //"line-join": "round"  // This makes the corners of the lines round
+                                                        }
+                                                    });
+
+                                                    map.addSource('circles'+key, {
+                                                            "type": "geojson",
+                                                            "data": pointjsons[key]
+                                                        });
+
+                                                        map.addLayer({
+                                                        "id": "circles-layer-"+key,
+                                                        "type": "circle",
+                                                        "source": "circles"+key,
+                                                        "paint": {
+                                                            'circle-radius': ['get','radius'],
+                                                            'circle-opacity': 0.2,
+                                                            'circle-color': ['get', 'fill'],
+                                                            'circle-stroke-color': 'black',
+                                                            'circle-stroke-width': ['get', 'stroke'],
+                                                           //  "line-width": ['get', 'width'],
+                                                           // "line-color": ['get', 'stroke'],
+                                                            //"line-cap": "round",
+                                                            //"line-join": "round"  // This makes the corners of the lines round
+                                                        }
+                                                    });
+
+                                                    map.on('mouseenter', "circles-layer-"+key, function (e) {
+      // Change the cursor style as a UI indicator.
+      map.getCanvas().style.cursor = 'pointer';
+
+      // Get the coordinates of the point
+      var coordinates = e.features[0].geometry.coordinates.slice();
+      var text = e.features[0].properties.text;
+
+    
+
+      // Populate the popup and set its coordinates
+      popup.setLngLat(coordinates).setHTML(text).addTo(map);
+    });
+
+    map.on('mouseleave', "circles-layer-"+key, function () {
+      map.getCanvas().style.cursor = '';
+      popup.remove();
+    });
+  
+
+    
+    /*
+    // Add a source for the line
+    map.addSource('line-source2'+key, {
+        'type': 'geojson',
+        'data': {
+            'type': 'Feature',
+            'geometry': {
+                'type': 'LineString',
+                'coordinates': coordinates[key]  // Your list of coordinates
+            }
+        }
+    });
+
+    // Add a dashed line layer
+    map.addLayer({
+        'id': 'line-layer'+key,
+        'type': 'line',
+        'source': 'line-source2'+key,
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'paint': {
+            'line-color': 'black',  // Color of the line
+            'line-width': 3,  
+            'line-opacity':0.5,     // Width of the line
+            'line-dasharray': [3, 2]  // Define the dash pattern (2px line, 4px gap)
+        }
+    });
+
+*/
+}})
+
+
+map.addControl(new mapboxgl.NavigationControl({ showCompass: true,showZoom: true,showPitch: true }));
+
+
+markers =[]
+  waypoints.forEach(waypoint => {
+    const el = document.createElement('div');
+    el.className = 'marker';
+   el.style.backgroundImage = waypoint.icon;
+    el.style.width = '32px';
+    el.style.height = '32px';
+    el.style.backgroundSize = '100%';
+
+    // Create a new marker with the custom element
+  temp=  new mapboxgl.Marker(el,{ offset: [0, -16]})
+        .setLngLat(waypoint.coordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25 ,closeButton: false}) // add popups
+            .setText(waypoint.name))
+        .addTo(map);
+        markers.push(temp)
+});
+
+map.on('zoom', function() { d3.select('#gu3').property('value',Math.round(map.getZoom()*10)/10)
+//toggleMarkers();
+
+})
+map.on('pitch', function() { d3.select('#gu1').property('value',90-Math.round(map.getPitch()))})
+map.on('move', function() { d3.select('#gu2').property('value',Math.round(map.getBearing()))})
+
+
+}
+//setTimeout(function(){add_milemarker()},500)
+
+function add_milemarker()
+{
+// Example list of coordinates (replace with your actual coordinates)
+var coord_mm = [
+    
+];
+textMarkersData =[]
+for (u=1;u<27;u++){
+    temp = Math.round(u*conv*0.04)/0.04
+console.log(temp)
+    coord_mm.push(coordinates.mara[Math.round(temp/25)])
+    textMarkersData.push({coordinates:coordinates.mara[Math.round(temp/25)],text: u +" miles"})
+}
+
+/*
+console.log(coord_mm)
+// GeoJSON format to create circle features for each coordinate, with numbered properties
+var geojson = {
+    'type': 'FeatureCollection',
+    'features': coord_mm.map(function(coord, index) {
+        return {
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': coord
+            },
+            'properties': {
+                'number': index + 1 // Assign each point a number based on its index
+            }
+        };
+    })
+};
+
+// Add the GeoJSON source with your coordinates
+map.addSource('circle-source5', {
+    'type': 'geojson',
+    'data': geojson
+});
+
+// Add a circle layer to display circles at each coordinate
+map.addLayer({
+    'id': 'circle-layer5',
+    'type': 'circle',
+    'source': 'circle-source5',
+    'paint': {
+        'circle-radius': 15, // Adjust the radius as needed
+        'circle-color': 'blue', // Red color for the circle
+        'circle-opacity': 0.25, // Semi-transparent
+        'circle-stroke-width': 0,
+        'circle-stroke-color': '#000000'
+    }
+});
+
+// Create a popup instance that will be used for tooltips
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+});
+
+// Add event listeners for hovering over circles
+map.on('mouseenter', 'circle-layer5', function (e) {
+    // Change the cursor to a pointer when the mouse is over the circle
+    map.getCanvas().style.cursor = 'pointer';
+
+    // Get the feature properties (the number of the circle)
+    var coord_mm = e.features[0].geometry.coordinates.slice();
+    var description = + e.features[0].properties.number + " miles"; // Tooltip content (number)
+
+    // Set the popup at the feature's location
+    popup.setLngLat(coord_mm)
+        .setHTML(description)
+        .addTo(map);
+});
+
+map.on('mouseleave', 'circle-layer5', function () {
+    // Change the cursor back to the default
+    map.getCanvas().style.cursor = '';
+
+    // Remove the popup when the mouse leaves the circle
+    popup.remove();
+});
+*/
+//---------------
+ textMarkers = [];
+textMarkersData.forEach(data => {
+        // Create a div element for each text marker
+        const textMarker = document.createElement('div');
+        textMarker.className = 'text-marker';
+        textMarker.textContent = data.text;
+
+        // Create and add the marker to the map
+        const marker = new mapboxgl.Marker(textMarker)
+            .setLngLat(data.coordinates)
+            .addTo(map);
+
+        // Store the marker in the array for later control
+        textMarkers.push(marker);
+    });
+   // toggleMarkers()
+
+}
+function toggleMarkers() {
+        const zoom = map.getZoom();
+        textMarkers.forEach(marker => {
+            if (zoom > 13) {
+                marker.getElement().style.display = 'block';
+            } else {
+                marker.getElement().style.display = 'none';
+            }
+        });
+        markers.forEach(marker => {
+            if (zoom > 10) {
+                marker.getElement().style.display = 'block';
+            } else {
+                marker.getElement().style.display = 'none';
+            }
+        });
+    }
+  </script>
+  </html>

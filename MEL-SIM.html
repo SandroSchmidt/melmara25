@@ -44,7 +44,7 @@
         </button>
 
     <button id="cvbut" onclick="roadvariante1 = !roadvariante1;
-    if(roadvariante1){d3.select('#cvbut').text('Route 2024'); coordinates = coordinatesold;console.log('alteccord')
+    if(roadvariante1){d3.select('#cvbut').text('Route 24/25'); coordinates = coordinatesold;console.log('alteccord')
     for (const key in coordinates) {
         for (i=0;i<coordinatesold[key].length-1;i++){
             pointjsons[key].features[i].geometry.coordinates = coordinatesold[key][i];
@@ -55,7 +55,7 @@
         map.getSource('circles'+key).setData(pointjsons[key])
     }
     }
-    else{d3.select('#cvbut').text('Route 2025'); coordinates = coordinatesnew;;console.log('neueccord')
+    else{d3.select('#cvbut').text('Route 2026'); coordinates = coordinatesnew;;console.log('neueccord')
     for (const key in coordinates) {
         for (i=0;i<coordinatesnew[key].length-1;i++){
             pointjsons[key].features[i].geometry.coordinates = coordinatesnew[key][i];
@@ -70,7 +70,7 @@
     
 
 
-    zeitgewahlt(Math.round(tim) )">Route 2025</button>
+    zeitgewahlt(Math.round(tim) )">Route 2026</button>
     
     <button id="playbut" onclick="play = !play;
     if(!play){d3.select('#playbut').text('play')
@@ -185,7 +185,7 @@ if (coltoggle){
             .domain([0, 500])  // Input domain
             .range([ 'green','black']),fivekm: d3.scaleLinear()
             .domain([0, 500])  // Input domain
-            .range([ 'pink','black']),twofivekm: d3.scaleLinear()
+            .range([ 'pink','black']),twofive: d3.scaleLinear()
             .domain([0, 500])  // Input domain
             .range([ '#09ebdc','black'])
 
@@ -205,7 +205,7 @@ if (coltoggle){
             .domain([0, 500])  // Input domain
             .range([ 'green','green']),fivekm: d3.scaleLinear()
             .domain([0, 500])  // Input domain
-            .range([ 'pink','pink']),twofivekm: d3.scaleLinear()
+            .range([ 'pink','pink']),twofive: d3.scaleLinear()
             .domain([0, 500])  // Input domain
             .range([ '#09ebdc','#09ebdc'])
     }
@@ -270,7 +270,7 @@ roadvariante1 = false
     selector = 0
     realtime = false
     coltoggle=false
-    filast = {mara:{},maraslow:{},half:{},tenkm:{},fivekm:{},twofivekm:{},marafull:{}}
+    filast = {mara:{},maraslow:{},half:{},tenkm:{},fivekm:{},twofive:{},marafull:{}}
     autoplayspeed = 0.5
 
 truecenter = coordinates.mara[Math.round(coordinates.mara.length/2)]
@@ -325,8 +325,8 @@ waypoints =[
             .range([ 3,10]); 
 
            
-racenames={mara:"marathon",half:"halfmarathon",tenkm:"10km run"}
-           cutoff = {mara:20*60,maraslow:8*60+360+60,half:5*60+360+120,tenkm:5*60+360+90,fivekm:3*60+330+360,twofivekm:3*60+360+360}
+racenames={mara:"marathon",half:"halfmarathon",tenkm:"10km run", fivekm:"5km run"}
+           cutoff = {mara:20*60,maraslow:8*60+360+60,half:5*60+360+120,tenkm:5*60+360+90,fivekm:3*60+330+360,twofive:3*60+360+360}
 
 
            
@@ -362,7 +362,7 @@ d3.select('#halftimset').property("value",convertMinutesToTime(delay.half))
 d3.select('#tenkmtimset').property("value",convertMinutesToTime(delay.tenkm))
 d3.select("#myRange").property("value", tim);
 d3.select('#fivekmtimset').property("value",convertMinutesToTime(delay.fivekm))
-d3.select('#twofivekmtimset').property("value",convertMinutesToTime(delay.twofivekm))
+d3.select('#twofivetimset').property("value",convertMinutesToTime(delay.twofive))
 d3.select('#spedset').property("value",5)
 linejsons ={}
 pointjsons ={}

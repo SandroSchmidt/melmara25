@@ -44,7 +44,7 @@
         </button>
 
     <button id="cvbut" onclick="roadvariante1 = !roadvariante1;
-    if(roadvariante1){d3.select('#cvbut').text('Route 24/25'); coordinates = coordinatesold;console.log('alteccord')
+    if(roadvariante1){d3.select('#cvbut').text('Route 24/25'); coordinates = coordinatesold;console.log('alteccord');console.log(coordinates.half.length)
     for (const key in coordinates) {
         for (i=0;i<coordinatesold[key].length-1;i++){
             pointjsons[key].features[i].geometry.coordinates = coordinatesold[key][i];
@@ -55,7 +55,7 @@
         map.getSource('circles'+key).setData(pointjsons[key])
     }
     }
-    else{d3.select('#cvbut').text('Route 2026'); coordinates = coordinatesnew;;console.log('neueccord')
+    else{d3.select('#cvbut').text('Route 2026'); coordinates = coordinatesnew;;console.log('neueccord');console.log(coordinates.half.length)
     for (const key in coordinates) {
         for (i=0;i<coordinatesnew[key].length-1;i++){
             pointjsons[key].features[i].geometry.coordinates = coordinatesnew[key][i];

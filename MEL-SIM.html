@@ -229,8 +229,14 @@ if (coltoggle){
         <td>10 km start:</td>
         <td> <input id="tenkmtimset" type="time" value="12:01" onchange="delay.tenkm = convertTimeToMinutes(this.value); zeitgewahlt(Math.round(tim));   localStorage.setItem(key, JSON.stringify(delay));"/></td>
     </tr>
-
-
+<tr>
+        <td>5 km start:</td>
+        <td> <input id="fivekmtimset" type="time" value="12:01" onchange="delay.fivekm = convertTimeToMinutes(this.value); zeitgewahlt(Math.round(tim));   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+    </tr>
+<tr>
+        <td>2.5 km start:</td>
+        <td> <input id="twofivetimset" type="time" value="12:01" onchange="delay.twofive = convertTimeToMinutes(this.value); zeitgewahlt(Math.round(tim));   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+    </tr>
 
 </body>
 <style>
@@ -262,7 +268,7 @@ colorScale = {mara:d3.scaleLinear()
 
 }
 
-colorScale2 = {mara:"red",half:"black",tenkm:"green"}
+colorScale2 = {mara:"red",half:"black",tenkm:"green",fivekm:"blue",twofive:"orange"}
 
 woist = [run2024,run2025,run2026]
 roadvariante1 = false 
@@ -325,7 +331,7 @@ waypoints =[
             .range([ 3,10]); 
 
            
-racenames={mara:"marathon",half:"halfmarathon",tenkm:"10km run", fivekm:"5km run"}
+racenames={mara:"marathon",half:"halfmarathon",tenkm:"10km run", fivekm:"5km run",twofive:"Fun run"}
            cutoff = {mara:20*60,maraslow:8*60+360+60,half:5*60+360+120,tenkm:5*60+360+90,fivekm:3*60+330+360,twofive:3*60+360+360}
 
 

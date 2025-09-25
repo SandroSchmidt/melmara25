@@ -1,0 +1,3 @@
+Ist ja eigentlich nur ”clean up”, um es ein bisschen sauber zu machen. Nimm die angesprochenen Läufer gerne raus. Das kann der Veranstalter ja am Lauf-Tag auch einfach umsetzen.
+
+ficko 64 226 100 15 irgendwas mit hosten oder mit putty ssh

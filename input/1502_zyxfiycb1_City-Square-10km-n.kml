@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"  xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2"    
+     xmlns:atom="http://www.w3.org/2005/Atom">
+    <Document>
+        <name><![CDATA[City Square 10km n]]></name>
+        
+                                    
+        <description><![CDATA[<br/><p> </p><p><br/>Converted using <b><a href='http://gpx2kml.com' title='Go to gpx2kml.com'>gpx2kml.com</a></b></p><br/>]]></description>
+        <visibility>1</visibility>
+        <open>1</open>
+        
+                <Style id="red">
+            <LineStyle>
+            <color>C81400FF</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_red">
+            <LineStyle>
+            <color>961400FF</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="green">
+            <LineStyle>
+            <color>C878FF00</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_green">
+            <LineStyle>
+            <color>9678FF00</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="blue">
+            <LineStyle>
+            <color>C8FF7800</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_blue">
+            <LineStyle>
+            <color>96FF7800</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="cyan">
+            <LineStyle>
+            <color>C8F0FF14</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_cyan">
+            <LineStyle>
+            <color>96F0FF14</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="orange">
+            <LineStyle>
+            <color>C81478FF</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_orange">
+            <LineStyle>
+            <color>961478FF</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="dark_green">
+            <LineStyle>
+            <color>C8008C14</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_dark_green">
+            <LineStyle>
+            <color>96008C14</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="purple">
+            <LineStyle>
+            <color>C8FF7878</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_purple">
+            <LineStyle>
+            <color>96FF7878</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="pink">
+            <LineStyle>
+            <color>C8A078F0</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_pink">
+            <LineStyle>
+            <color>96A078F0</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="brown">
+            <LineStyle>
+            <color>C8143C96</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_brown">
+            <LineStyle>
+            <color>96143C96</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+                <Style id="dark_blue">
+            <LineStyle>
+            <color>C8F01414</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        <Style id="route_dark_blue">
+            <LineStyle>
+            <color>96F01414</color>
+            <width>4</width>
+            </LineStyle>
+        </Style>
+        
+                
+                
+        <Folder>
+            <name>Tracks</name>
+            <description>A list of tracks</description>
+            <visibility>1</visibility>            
+            <open>0</open>
+                                                            
+                <Placemark>
+                    <visibility>0</visibility>            
+                    <open>0</open> 
+                    <styleUrl>#red</styleUrl>
+                    <name>City Square 10km</name>
+                    <description>Length: 10.13 km (6.292 mi)
+ - Track no. 1</description>
+                    <LineString>
+                        <extrude>true</extrude>
+                        <tessellate>true</tessellate>
+                        <altitudeMode>clampToGround</altitudeMode> 
+                        <coordinates>
+                            144.9665791,-37.815607 144.9675125,-37.8177513 144.9681509,-37.8191031 144.9685156,-37.8199125 144.9686605,-37.8203405 144.9687356,-37.8206964 144.9688643,-37.82101 144.9694598,-37.8222982 144.9703395,-37.8242686 144.9708277,-37.8254126 144.9712139,-37.826616 144.9711281,-37.8292134 144.9711335,-37.8300142 144.9711871,-37.8309378 144.9712461,-37.8314929 144.9714285,-37.8319843 144.9716055,-37.8323148 144.9717611,-37.8328021 144.9722117,-37.833302 144.9729413,-37.8336875 144.9734509,-37.8338909 144.9739927,-37.8342892 144.974336,-37.8346874 144.9746954,-37.8351492 144.9751031,-37.8357763 144.9753606,-37.8361703 144.9761653,-37.8385512 144.9766749,-37.8399365 144.9778229,-37.8430206 144.9779141,-37.8432621 144.9779731,-37.8434188 144.9780804,-37.8433934 144.9780107,-37.8432494 144.9779248,-37.8429994 144.9773669,-37.8414405 144.9763209,-37.8385597 144.9757791,-37.8369837 144.9758327,-37.8368566 144.97572,-37.8363397 144.97572,-37.8361491 144.9754143,-37.8355814 144.9750388,-37.8349713 144.974395,-37.8342426 144.9737298,-37.8337172 144.973129,-37.8333062 144.9727964,-37.8330647 144.9726838,-37.8329334 144.9732685,-37.8329292 144.9825114,-37.8341324 144.9825543,-37.8339756 144.9824792,-37.833713 144.9821842,-37.8334672 144.981637,-37.8333317 144.9802583,-37.8332808 144.9798077,-37.8332512 144.9788421,-37.8329164 144.9781501,-37.8325139 144.9776834,-37.8320775 144.9771363,-37.8314547 144.976573,-37.8310268 144.97572,-37.8306751 144.974733,-37.8303235 144.9744004,-37.8300481 144.9741912,-37.829565 144.9739873,-37.8290057 144.9737567,-37.828582 144.9734348,-37.8282049 144.9730593,-37.8278363 144.9727696,-37.8275482 144.9725604,-37.827294 144.9724156,-37.8270058 144.972378,-37.8266796 144.9723995,-37.8263702 144.9724746,-37.8258787 144.9724746,-37.8255355 144.9722707,-37.8251542 144.9718899,-37.8246245 144.9716324,-37.8241753 144.9714017,-37.8238194 144.9712569,-37.8235228 144.9710959,-37.8233491 144.9709028,-37.8232092 144.9708438,-37.8231118 144.9703288,-37.8232346 144.9695402,-37.8215227 144.9692291,-37.8208956 144.9688911,-37.8202981 144.9687302,-37.820065 144.9675608,-37.8175055 144.9701035,-37.8167596 144.9724746,-37.8160435 144.9749422,-37.8153612 144.9769861,-37.8155392 144.9790353,-37.8157722 144.9786437,-37.8181369 144.9787563,-37.8185183 144.9789762,-37.818781 144.9803978,-37.8196116 144.9824309,-37.8208617 144.9829781,-37.8204549 144.9835306,-37.8205311 144.9838901,-37.8204803 144.9841207,-37.8203362 144.9843246,-37.8201455 144.9842924,-37.8199125 144.984228,-37.8196836 144.9839866,-37.8195268 144.9837023,-37.8194251 144.9834931,-37.8193743 144.9831337,-37.8194463                             
+                        </coordinates>
+                    </LineString>
+                </Placemark>
+                                        
+        </Folder>
+                
+        <LookAt>
+            <longitude>144.97545185</longitude>            
+            <latitude>-37.82939</latitude>             
+            <altitude>0</altitude>               
+            <heading>0</heading>               
+            <tilt>45</tilt>
+            <range>1618</range>                    
+            <altitudeMode>clampToGround</altitudeMode> 
+        </LookAt>
+    </Document>
+</kml>

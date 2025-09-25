@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<head>
+<script src='./data.js'></script>
+
+<script src='./d3.min.js'></script>
+
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+
+
+</head>
+<style>
+    table.center {
+  margin-left: auto; 
+  margin-right: auto;
+}
+</style>
+<body>
+    <button id="playbut" onclick="play = !play;
+    if(!play){d3.select('#playbut').text('play')
+     zeitgewahlt(Math.round(tim))
+
+
+}else{d3.select('#playbut').text('stop')
+
+
+for(q=0;q<42195;q+=500){
+    let k = q/500
+    if(map.getLayer('circle-layer'+k)){
+   
+    map.removeLayer('circle-layer'+k);
+    map.removeSource('circle'+k);}
+}
+
+}
+
+
+
+    
+
+
+    ">play</button>
+       <button onclick="
+       
+       map.setPitch(45);map.setBearing(0);map.setZoom(12);map.setCenter([
+      144.94,
+      -37.8173614
+    ])
+
+
+
+
+
+       d3.select('#gu1').property('value','45')
+       d3.select('#gu2').property('value','0')
+       d3.select('#gu3').property('value','15')
+       zeitgewahlt(360)
+       tim = 360
+
+       play = false
+           ">reset</button>
+ speed:<input value="1" style="width:2%" id="spedset" type="number" min=1 max=5  onchange="autoplayspeed = 1/(6-this.value)"/>
+
+
+    <input type="range" id ="myRange" style="width: 80%" onchange="
+    if(play == false)
+  {  tim = this.value ; zeitgewahlt(this.value)}"
+
+             value=60 min=360 max=900 step=0.25/>
+            
+             <table class="center">
+                <tr>
+
+
+                    <td>time: </td>
+                    <td><span id="uhr">00:00</span></td>
+                <td></td>
+                    <td>guntime:</td>
+                    <td><span id="gunuhr">00:00</span></td>
+                </tr>
+            </table>
+    <div id="map" style="width: 100%; height:95vh;"></div>
+ 
+    
+  
+     
+            <br>
+            pitch: <input id="gu1" type="number" style="width:4%" value =45 step=1 min=15 max=90 oninput="map.setPitch(90-this.value)"/>
+            bearing: <input id="gu2" type="number" style="width:4%" value=0 step=1 min=-90 max=90 oninput="map.setBearing(this.value)"/>
+            zoom: <input id="gu3" type="number" style="width:4%" value =15 step=0.1 min=12 max=17 oninput="map.setZoom(this.value)"/>
+            <table>
+           
+                <tr>
+                    <td>marathon start:</td>
+                    <td><input id="maratimset" type="time" value="12:01" onchange="delay.mara = convertTimeToMinutes(this.value); zeitgewahlt(tim);   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+                </tr>
+                <tr>
+                    <td>half marathon start:</td>
+                    <td><input id="halftimset" type="time" value="12:01" onchange="delay.half = convertTimeToMinutes(this.value); zeitgewahlt(tim);   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+                </tr>
+                <tr>
+                    <td>10 km start:</td>
+                    <td> <input id="tenkmtimset" type="time" value="12:01" onchange="delay.tenkm = convertTimeToMinutes(this.value); zeitgewahlt(tim);   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+                </tr>
+                <tr>
+                    <td> 5 km start:</td>
+                    <td><input id="fivekmtimset" type="time" value="12:01" onchange="delay.fivekm = convertTimeToMinutes(this.value); zeitgewahlt(tim);   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+                </tr>
+
+                <tr>
+                    <td> 2.5 km start:</td>
+                    <td><input id="twofivetimset" type="time" value="12:01" onchange="delay.twofive = convertTimeToMinutes(this.value); zeitgewahlt(tim);   localStorage.setItem(key, JSON.stringify(delay));"/></td>
+                </tr>
+             
+            </table>
+ 
+<br>  
+<br> 
+<br>   
+    <!--
+    <input type="range" onchange="map.setPitch(this.value);" min=20 max=90 step=5/>
+    <input type="range" onchange="map.setBearing(this.value);" min=-90 max=90 step=5/>
+  -->
+
+
+
+  <button id="playbut" onclick="
+fivehpace = 42195/(5*60*60)
+
+  counter =0
+  mara_umgeleitet =[]
+  mara_normal =[]
+  abbruchzeit = 160*60 // in sekunden
+  for (i=0;i<full_laufer.mara.length;i++){
+    let run = full_laufer.mara[i]
+    
+    if ((abbruchzeit -run[0])*run[1]<22000){
+        counter++
+       mara_normal.push(mara[i])
+
+
+        //if(run[1]<fivehpace){console.log('schnelle')}
+        //if(run[1]*((5*60*60)-run[0])>42195){console.log('schneller')}
+    }else{  mara_umgeleitet.push(mara[i])}
+
+  }
+//alert('so viele läufer sind um ' + convertMinutesToTime((abbruchzeit/60)+delay.mara) +' noch vor 22 km '+counter)
+full_laufer.mara=mara_normal
+
+
+
+  ">calc</button>
+
+</body>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+</style>
+<script>
+    peakmaraold=0
+    const popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        });
+    uuuu =0
+    tim =360
+autoplayspeed = 0.25
+
+key= "delay"
+const value = localStorage.getItem(key);
+
+// Check if the value exists
+
+if (value !== null) {
+  delay = JSON.parse(value)
+  console.log(JSON.parse(value));
+  console.log("gelesen von locals")
+} else {
+    delay = {mara:60+360,half:120+360,tenkm:90+360,fivekm:330+360,twofivekm:360+360}
+    localStorage.setItem(key, JSON.stringify(delay));
+    console.log('did not exist in local storage.')
+
+}
+
+
+
+d3.select('#maratimset').property("value",convertMinutesToTime(delay.mara))
+d3.select('#halftimset').property("value",convertMinutesToTime(delay.half))
+d3.select('#tenkmtimset').property("value",convertMinutesToTime(delay.tenkm))
+d3.select("#myRange").property("value", tim);
+d3.select('#fivekmtimset').property("value",convertMinutesToTime(delay.fivekm))
+d3.select('#twofivekmtimset').property("value",convertMinutesToTime(delay.twofivekm))
+d3.select('#spedset').property("value",1)
+    play= false
+
+    setInterval(function(){
+       if(play){
+        tim = parseFloat(tim)+autoplayspeed// 0.25
+        if (tim ==1000){tim =0 ;play = false}
+             zeitgewahlt(tim)
+        
+       } 
+    },100)
+
+
+    mara.forEach((item) => {
+item[1] = item[1]+0.00003;
+item[0] = item[0]+0.00003}
+ )
+ half.forEach((item) => {
+item[1] = item[1]-0.00003;
+item[0] = item[0]-0.00003 }
+ )
+
+    function convertTimeToMinutes(time) {
+    // Split the input time into hours and minutes
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Calculate the total minutes
+    const totalMinutes = (hours * 60) + minutes
+    
+    return totalMinutes;
+}
+
+    function convertMinutesToTime(temp) {
+    // Base time of 6:00 AM
+    
+
+ 
+    const hours = Math.floor(temp / 60);
+    const minutes = temp % 60;
+  
+    // Format hours and minutes into "hh:mm"
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    
+    return `${formattedHours}:${formattedMinutes}`;
+}
+
+function fillSteps(inputArray) {
+    // Step 1: Initialize an empty object
+    const stepDict = {};
+
+    // Step 2: Populate the object with the given values
+    inputArray.forEach(([step, value]) => {
+        stepDict[step] = value;
+    });
+
+    // Step 3: Iterate through the steps from 0 to 42000
+    for (let step = 0; step <= 42000; step += 500) {
+        if (!stepDict.hasOwnProperty(step)) {
+            stepDict[step] = 0;
+        }
+    }
+
+    // Step 4: Convert the object back to a sorted array of arrays
+    const outputArray = Object.keys(stepDict).map(step => [parseInt(step), stepDict[step]]);
+
+    // Sort the array by the step values
+    outputArray.sort((a, b) => a[0] - b[0]);
+
+    return outputArray;
+}
+function aggregateValues(arr) {
+    const resultMap = new Map();
+
+    // Iterate over each pair [a, b]
+    arr.forEach(pair => {
+        const [a, b] = pair;
+
+        if (resultMap.has(a)) {
+            // If a is already in the map, add b to the existing value
+            resultMap.set(a, resultMap.get(a) + b);
+        } else {
+            // Otherwise, initialize with b
+            resultMap.set(a, b);
+        }
+    });
+
+    // Convert resultMap back to array format [[a, sumB], [a, sumB], ...]
+    const resultArray = Array.from(resultMap.entries()).map(([a, sumB]) => [a, sumB]);
+
+    return resultArray;
+}
+  function wieoft(arr,zeit) {
+                wosind=[] // auf 500 gerundete weite der läufe bei vergangener zeit
+
+for(q=0;q<arr.length;q++ ){
+weite = (zeit*60-delay.mara*60-arr[q][0]) * arr[q][1] 
+
+if(weite > 0 && weite < 42195)
+    {wosind.push(Math.round(weite/500)*500)}
+}
+
+
+    // Create an object to count occurrences
+    const counts = {};
+    wosind.forEach(num => {
+        counts[num] = (counts[num] || 0) + 1;
+    });
+
+    // Create a new array with the counts
+    const result = [];
+    for (const num in counts) {
+        if (counts.hasOwnProperty(num) && counts[num] > 10) {
+            result.push([parseInt(num), counts[num]]);
+        }
+    }
+    result2 = fillSteps(result);
+
+    return result2;
+}
+function return_woist(){
+
+}
+min = 99999999999
+laufer.half.forEach(function (item, index) {
+
+min = Math.min(min,Math.round(42195/(item[1]*60)))
+})
+
+wosind ={mara:[],half:[],tenkm:[],fivekm:[],twofivekm:[]}
+
+function zeitgewahlt(timr)
+    {
+    tim=timr        
+        d3.select("#myRange").property("value", tim);
+        d3.select('#uhr').text(convertMinutesToTime(Math.round(tim)))
+        d3.select('#gunuhr').text(convertMinutesToTime(Math.max(0,Math.round(tim-delay.mara))))
+ 
+
+    
+wieoft_arr =wieoft(full_laufer.mara, tim)
+
+
+let peakmara = wieoft_arr.reduce((maxSubArray, currentSubArray) => {
+  return currentSubArray[1] > maxSubArray[1] ? currentSubArray : maxSubArray;
+}, [-Infinity, -Infinity]); // Start with [-Infinity, -Infinity] to ensure any sub-array will be higher
+
+peakmara = peakmara[0]
+// Step 3: Extract the first value and the highest second value
+if(play){peakmara = Math.max(peakmara,peakmaraold)}
+peakmaraold = peakmara
+/*
+for(oooo=0;oooo<uuuu;oooo++){
+    
+    map.removeLayer('circle-layer'+oooo);
+    map.removeSource('circle'+oooo);
+    
+}
+uuuu=0
+*/
+///xxxx
+
+
+
+if(!map.getLayer('circle-layer'+1)){
+        for(q=0;q<42195;q+=500){
+ 
+
+ let k = q/500
+ map.addSource('circle'+k, {
+     
+     type: 'geojson',
+     data: {
+         type: 'FeatureCollection',
+         features: [{
+             type: 'Feature',
+             geometry: {
+                 type: 'Point',
+                 coordinates: mara[Math.round((q*mara.length)/42195)],
+             },
+             properties: {}
+         }]
+     }
+ });
+ 
+let zubrot= 3
+ map.addLayer({
+     id: 'circle-layer'+k,
+     type: 'circle',
+     source: 'circle'+k,
+     paint: {
+         'circle-radius': 3,
+         'circle-opacity': 0,
+         'circle-color': 'lime',
+         'circle-stroke-color': 'black',
+         'circle-stroke-width': 0
+     }
+ },"peakmaral");}}
+
+
+for(q=0;q<42195;q+=500){
+if(play == false){
+    let k = q/500
+
+ let weite = wieoft_arr[k][0] 
+  let runners = wieoft_arr[k][1]
+   
+
+
+
+    map.on('mouseenter', 'circle-layer'+k, () => {
+    map.getCanvas().style.cursor = 'pointer';
+    
+    if(runners >0){
+    popup.setLngLat(mara[Math.round((weite*mara.length)/42195)]).setHTML("marathon <br> at: "+ convertMinutesToTime(tim)+ " h <br>"+ Math.round(weite/100)/10 +" km <br>"+ runners/5 +" runners/100m" ).addTo(map);
+    }
+    //map.setPaintProperty('circle-layer'+k, 'circle-color', '#3bb2d0');
+    map.setPaintProperty('circle-layer'+k, 'circle-stroke-color', 'red');
+    map.setPaintProperty('circle-layer'+k, 'circle-stroke-width', 4);
+    map.setPaintProperty('circle-layer'+k, 'circle-radius', 5); 
+});
+
+if (runners/5 < 5){zubrote=0}else{zubrote=3}
+let zubrot= zubrote
+
+map.setPaintProperty('circle-layer'+k, 'circle-stroke-width', zubrot);
+
+map.on('mouseleave', 'circle-layer'+k, () => {
+    map.getCanvas().style.cursor = '';
+    popup.remove()
+   // map.setPaintProperty('circle-layer'+k, 'circle-color', '#007cbf');
+    map.setPaintProperty('circle-layer'+k, 'circle-stroke-color', "black");
+    map.setPaintProperty('circle-layer'+k, 'circle-stroke-width', zubrot);
+    map.setPaintProperty('circle-layer'+k, 'circle-radius', 2);
+});
+}
+
+
+}
+
+
+
+
+
+
+
+
+        /*
+marawurst =[]
+first=0
+last = 999999
+for(i=0;i<laufer.mara.length;i++){
+    weite =(((tim-delay.mara)*60)-laufer.mara[i][0])*laufer.mara[i][1]
+    weite = Math.max(0,weite)
+    wogrid2 = Math.round(weite*(mara.length/42195))
+    first = Math.max(first,wogrid2)
+    last = Math.min(last,wogrid2)
+    
+if(weite > 0){wosind.mara.push([wogrid2,laufer.mara[i][2]])
+   }
+}
+wosind.mara = aggregateValues(wosind.mara)
+wosind.mara.sort(function(a, b) {
+    // Compare the first elements
+    return a[0] - b[0];
+});
+
+
+
+marawurst = mara.slice(Math.max(last,0),first)
+*/
+
+/*
+var geojson = {
+        "type": "FeatureCollection",
+        "features": []
+    };
+
+
+
+    for (var i = 0; i < data.length; i++) {
+        var point = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": mara[data[i][0]]
+            },
+            "properties": {
+                "peopleCount":data[i][1],
+                "id": i // Unique ID for each point
+            }
+        };
+        geojson.features.push(point);
+    }
+
+
+
+
+
+map.getSource('points').setData(geojson)
+
+*/
+
+if(false){
+for (var i = 0; i < data.length - 1; i++) {
+  
+
+  
+    var segment = {
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [
+            mara[data[i][0]],
+            mara[data[i][0]+1],
+            data[i][1]*100
+            ]
+        },
+        "properties": {
+            "peopleCount": data[i][1]
+        }
+    };
+    geojson.features.push(segment);
+}
+map.getSource('line-segments').setData(geojson)
+}
+
+
+//map.getSource('route').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',        'coordinates': marawurst    }})
+
+//if(true){}
+      
+
+mara_fahnen={
+    erster_elit:Math.max(0,tim-delay.mara) * 60 * 5.25,
+    erster_feld:Math.max(0,tim-delay.mara) * 60 * 4.40,
+    letzter_elit:0,
+    letzter_feld:Math.max(0,tim-delay.mara-30) * 60 * 2,
+}
+
+mara_fahnen={
+    erster_elit:Math.round((mara_fahnen.erster_elit*mara.length)/42195),
+    erster_feld:Math.round((mara_fahnen.erster_feld*mara.length)/42195),
+    letzter_elit:0,
+    letzter_feld:Math.round((mara_fahnen.letzter_feld*mara.length)/42195)}
+
+    if(tim>delay.mara && tim < delay.mara+140){markers[10].setLngLat(mara[mara_fahnen.erster_elit])}else {markers[10].setLngLat([0,0])}
+map.getSource('maraeliteseg').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': mara.slice(mara_fahnen.erster_feld,mara_fahnen.erster_elit)   }})
+map.getSource('route_mara').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': mara.slice(mara_fahnen.letzter_feld,mara_fahnen.erster_feld)   }})
+
+if(peakmara != 0){
+  map.getSource('peakmara').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': mara.slice(Math.max(0,Math.round(((peakmara*mara.length)/42195)-100)),Math.max(0,Math.round(((peakmara*mara.length)/42195)+100))) }})
+}else{
+    map.getSource('peakmara').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': [0,0] }})
+}
+
+//---------------------------------------------------------------------------
+  half_fahnen={
+    erster_elit:Math.max(0,tim-delay.half) * 60 * 5.58,
+    erster_feld:Math.max(0,tim-delay.half) * 60 * 4.688,
+    letzter_elit:0,
+    letzter_feld:Math.max(0,tim-delay.half) * 60 * 1.732,
+}
+
+half_fahnen={
+    erster_elit:Math.round((half_fahnen.erster_elit*half.length)/21098),
+    erster_feld:Math.round((half_fahnen.erster_feld*half.length)/21098),
+    letzter_elit:0,
+    letzter_feld:Math.round((half_fahnen.letzter_feld*half.length)/21098)}
+
+    if(tim>delay.half && tim < delay.half+65){markers[11].setLngLat(half[half_fahnen.erster_elit])}else {markers[11].setLngLat([0,0])}
+map.getSource('halfeliteseg').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': half.slice(half_fahnen.erster_feld,half_fahnen.erster_elit)   }})
+map.getSource('route_half').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': half.slice(half_fahnen.letzter_feld,half_fahnen.erster_feld,)   }})
+      //---------------------------------------------------------------------------
+  tenkm_fahnen={
+    erster_elit:Math.max(0,tim-delay.tenkm) * 60 * 5.747,
+    erster_feld:Math.max(0,tim-delay.tenkm) * 60 * 4.762,
+    letzter_elit:0,
+    letzter_feld:Math.max(0,tim-delay.tenkm) * 60 * 1.488,}
+
+tenkm_fahnen={
+    erster_elit:Math.round((tenkm_fahnen.erster_elit*tenkm.length)/10000),
+    erster_feld:Math.round((tenkm_fahnen.erster_feld*tenkm.length)/10000),
+    letzter_elit:0,
+    letzter_feld:Math.round((tenkm_fahnen.letzter_feld*tenkm.length)/10000)}
+
+    if(tim>delay.tenkm && tim < delay.tenkm+20){
+        markers[12].setLngLat(tenkm[tenkm_fahnen.erster_elit])}else {markers[12].setLngLat([0,0])}
+map.getSource('tenkmeliteseg').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': tenkm.slice(tenkm_fahnen.erster_feld,tenkm_fahnen.erster_elit)   }})
+map.getSource('route_tenkm').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': tenkm.slice(tenkm_fahnen.letzter_feld,tenkm_fahnen.erster_feld,)   }})
+    //---------------------------------------------------------------------------
+    fivekm_fahnen={
+    erster_elit:Math.max(0,tim-delay.fivekm) * 60 * 5.952,
+   
+    letzter_feld:Math.max(0,tim-delay.fivekm) * 60 * 1.096,}
+
+fivekm_fahnen={
+    erster_elit:Math.round((fivekm_fahnen.erster_elit*fivekm.length)/5000),
+    
+    letzter_feld:Math.round((fivekm_fahnen.letzter_feld*fivekm.length)/5000)}
+
+    if(tim>delay.fivekm && tim < delay.fivekm+15){markers[13].setLngLat(fivekm[fivekm_fahnen.erster_elit])}else {markers[13].setLngLat([0,0])}
+map.getSource('route_fivekm').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': fivekm.slice(fivekm_fahnen.letzter_feld,fivekm_fahnen.erster_elit,)   }})
+  //---------------------------------------------------------------------------
+  twofivekm_fahnen={
+    erster_elit:Math.max(0,tim-delay.twofivekm) * 60 * 4.63,
+   
+    letzter_feld:Math.max(0,tim-delay.twofivekm) * 60 * 0.78,}
+
+twofivekm_fahnen={
+    erster_elit:Math.round((twofivekm_fahnen.erster_elit*twofivekm.length)/2500),
+    
+    letzter_feld:Math.round((twofivekm_fahnen.letzter_feld*twofivekm.length)/2500)}
+
+    if(tim>delay.twofivekm && tim < delay.twofivekm+10){markers[14].setLngLat(twofivekm[twofivekm_fahnen.erster_elit])}else {markers[14].setLngLat([0,0])}
+map.getSource('route_twofivekm').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': twofivekm.slice(twofivekm_fahnen.letzter_feld,twofivekm_fahnen.erster_elit,)   }})
+  
+
+    //---------------------------------------------------------------------------
+    maraumgeleiet_fahnen={
+    erster_elit:Math.max(0,tim-delay.twofivekm) * 60 * 4.63,
+   
+    letzter_feld:Math.max(0,tim-delay.twofivekm) * 60 * 0.78,}
+
+twofivekm_fahnen={
+    erster_elit:Math.round((twofivekm_fahnen.erster_elit*twofivekm.length)/2500),
+    
+    letzter_feld:Math.round((twofivekm_fahnen.letzter_feld*twofivekm.length)/2500)}
+
+    if(tim>delay.twofivekm && tim < delay.twofivekm+10){markers[14].setLngLat(twofivekm[twofivekm_fahnen.erster_elit])}else {markers[14].setLngLat([0,0])}
+map.getSource('route_twofivekm').setData({    'type': 'Feature',    'properties': {},'geometry': {        'type': 'LineString',      
+  'coordinates': twofivekm.slice(twofivekm_fahnen.letzter_feld,twofivekm_fahnen.erster_elit,)   }})
+  
+  /*
+        /*
+        marawurst = mara.slice(Math.max(last,0),first)
+     
+             
+*/
+
+
+            // Add a new heatmap layer with updated data
+            
+        /*timx = Math.round((mara.length/800) * Math.max(tim-delay.mara,0))
+        teilvonmaraelite = mara.slice(Math.max(timx-5,0),timx) 
+        teilvonmara = mara.slice(Math.max(timx-30,0),timx-5)  
+        if(timx>0&&timx<500){ markers[10].setLngLat(teilvonmaraelite[teilvonmaraelite.length-1])}else {markers[10].setLngLat([0,0])}
+        map.getSource('route').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvonmara    }})
+        map.getSource('maraeliteseg').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvonmaraelite   }})
+*/
+
+    
+/*
+if(tim>delay.half)
+      {
+             timx = Math.round((half.length/300) * Math.max(tim-delay.half,0))
+        teilvonhalfelite = half.slice(Math.max(timx-5,0),timx)
+        teilvonhalf= half.slice(Math.max(timx-20,0),timx-5)  
+       if(timx>0&&timx<800){ markers[11].setLngLat(teilvonhalfelite[teilvonhalfelite.length-1])}else {markers[11].setLngLat([0,0])}
+        map.getSource('route2').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvonhalf    }})
+             map.getSource('halfeliteseg').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvonhalfelite   }})
+
+      }
+
+      if(tim>delay.tenkm)
+      {
+             timx = Math.round((tenkm.length/50) * Math.max(tim-delay.tenkm,0))
+        teilvontenkmelite = tenkm.slice(Math.max(timx-5,0),timx)  
+        teilvontenkm = tenkm.slice(Math.max(timx-15,0),timx-5)  
+        if(timx>0&&timx<490){ markers[12].setLngLat(teilvontenkmelite[teilvontenkmelite.length-1])}else {markers[12].setLngLat([0,0])}
+        map.getSource('route3').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvontenkm    }})
+             map.getSource('10kmeliteseg').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvontenkmelite   }})
+
+      }
+
+             timx = Math.round((fivekm.length/30) * Math.max(tim-delay.fivekm,0))
+        teilvonfivekm = fivekm.slice(Math.max(timx-10,0),timx)  
+        if(timx>0&&timx<100){markers[13].setLngLat(teilvonfivekm[teilvonfivekm.length-1])}else {markers[13].setLngLat([0,0])}
+        map.getSource('route4').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvonfivekm    }})
+
+             timx = Math.round((twofive.length/30) * Math.max(tim-delay.twofive,0))
+        teilvontwofive = twofive.slice(Math.max(timx-10,0),timx)  
+        if(timx>0&&timx<100){markers[13].setLngLat(teilvontwofive[teilvontwofive.length-1])}else {markers[13].setLngLat([0,0])}
+        map.getSource('route4').setData({    'type': 'Feature',    'properties': {},
+             'geometry': {        'type': 'LineString',        'coordinates': teilvontwofive    }})
+
+              
+    */
+
+              
+
+    }
+    mapboxgl.accessToken = 'pk.eyJ1Ijoic2FuZHJvc2NobWlkdCIsImEiOiJjbHg3bTMxYmwxMXZiMmtzY2tlN3RjNGY5In0.2whcv8hzfzdyukPAXWwSPw';
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11', // Map style to use
+      center:   [
+      144.94,
+      -37.8173614
+    ], // Starting position [lng, lat]
+    dragRotate: true,
+      zoom: 12 ,// Starting zoom level
+      pitch: 45, // tilt the map 45 degrees
+      bearing: 0 // rotate the map -17.6 degrees
+    });
+    linesize = 3
+  
+    // Add 3D buildings layer
+    map.on('load', function () {
+
+
+
+
+      map.addLayer({
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
+        'paint': {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            ['get', 'height']
+          ],
+          'fill-extrusion-base': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            ['get', 'min_height']
+          ],
+          'fill-extrusion-opacity': 0.6
+        }
+      });
+    });
+
+    map.on('load', function () {
+
+        var geojson = {
+    "type": "FeatureCollection",
+    "features": []
+};
+        map.addSource('line-segments', {
+        "type": "geojson",
+        "data": geojson
+    });
+
+    map.addLayer({
+        "id": "line-segments-layer",
+        "type": "line",
+        "source": "line-segments",
+        "paint": {
+            "line-width": [
+                "interpolate",
+                ["linear"],
+                
+                ["get", "peopleCount"],
+                0, 2,
+                50, 10 // Adjust line widths based on the number of people
+            ],
+            "line-color": "#25c448",
+       //     "line-cap": "round",
+         //    "line-join": "round"
+        }
+    });
+
+
+       
+    linienliste = [
+    {name:"route_mara",coordinates:[0,0],color:"red"},//"#25c448"},
+    {name:"route_half",coordinates:[0,0],color:"black"},//"#e02810"},
+    {name:"route_tenkm",coordinates:[0,0],color:"green"},//"#eb09d0"},
+    {name:"route_fivekm",coordinates:[0,0],color:"pink"},//"#eb091c"},
+    {name:"route_twofivekm",coordinates:[0,0],color:"blue"},//"#09ebdc "},
+    {name:"maraeliteseg",coordinates:[0,0],color:"#091ceb"},
+    {name:"halfeliteseg",coordinates:[0,0],color:"#091ceb"},
+    {name:"tenkmeliteseg",coordinates:[0,0],color:"#091ceb"},    
+    {name:"peakmara",coordinates:[0,0],color:"yellow"}, 
+]
+
+data=[]
+
+/*#091ceb
+
+            map.addLayer({
+                id: 'heatmap-layer',
+                type: 'heatmap',
+                source: {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: data.map(function(point) {
+                            return {
+                                type: 'Feature',
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: [point[0], point[1]]
+                                },
+                                properties: {
+                                    intensity: point[2]
+                                }
+                            };
+                        })
+                    }
+                },
+                paint: {
+                    'heatmap-opacity': 0.8,
+                    // Adjust heatmap colors and intensity radius as needed
+                    'heatmap-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['heatmap-density'],
+                        0, 'rgba(0, 0, 255, 0)',
+                        0.2, 'royalblue',
+                        0.4, 'cyan',
+                        0.6, 'lime',
+                        0.8, 'yellow',
+                        1, 'red'
+                    ],
+                    'heatmap-radius': 10 // Adjust the radius of intensity influence
+                }
+            });
+        
+    
+Elite Farbe immer #091ceb
+
+
+
+Der Strahl soll im
+*/
+
+    
+    
+var geojson = [];
+
+/*
+    map.addSource('points', {
+        "type": "geojson",
+        "data": geojson
+    });
+
+    map.addLayer({
+        "id": "point-layer",
+        "type": "circle",
+        "source": "points",
+        "paint": {
+            "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["get", "peopleCount"],
+                1, 1, // Adjust circle radius based on the number of people
+                50, 10
+            ],
+            "circle-color": "#FF0000",
+       //     "circle-stroke-width": 1,
+         //   "circle-stroke-color": "#FFFFFF"
+        }
+    });
+
+*/
+
+    for(i=0;i<linienliste.length;i++){
+        
+    map.addSource(linienliste[i].name, {
+        'type': 'geojson',
+        'data': {
+            'type': 'Feature',
+            'properties': {},
+            'geometry': {
+                'type': 'LineString',
+                'coordinates': linienliste[i].coordinates            }
+        }
+    });
+
+    map.addLayer({
+        'id': linienliste[i].name + "l",
+        'type': 'line',
+        'source': linienliste[i].name,
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'paint': {
+            'line-color': linienliste[i].color,
+            'line-width': linesize
+        }
+    });}
+
+    
+    for(q=0;q<42195;q+=500){
+ 
+
+ let k = q/500
+ map.addSource('circle'+k, {
+     
+     type: 'geojson',
+     data: {
+         type: 'FeatureCollection',
+         features: [{
+             type: 'Feature',
+             geometry: {
+                 type: 'Point',
+                 coordinates: mara[Math.round((q*mara.length)/42195)],
+             },
+             properties: {}
+         }]
+     }
+ });
+
+ map.addLayer({
+     id: 'circle-layer'+k,
+     type: 'circle',
+     source: 'circle'+k,
+     paint: {
+         'circle-radius': 3,
+         'circle-opacity': 0,
+         'circle-color': 'lime',
+         'circle-stroke-color': 'black',
+         'circle-stroke-width': 2
+     }
+ },"peakmaral");
+
+
+}
+  })
+
+  map.addControl(new mapboxgl.NavigationControl({ showCompass: true,showZoom: true,showPitch: true }));
+
+
+markers =[]
+  waypoints.forEach(waypoint => {
+    const el = document.createElement('div');
+    el.className = 'marker';
+   el.style.backgroundImage = waypoint.icon;
+    el.style.width = '32px';
+    el.style.height = '32px';
+    el.style.backgroundSize = '100%';
+
+    // Create a new marker with the custom element
+  temp=  new mapboxgl.Marker(el,{ offset: [0, -16]})
+        .setLngLat(waypoint.coordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25 }) // add popups
+            .setText(waypoint.name))
+        .addTo(map);
+        markers.push(temp)
+});
+
+map.on('zoom', function() { d3.select('#gu3').property('value',Math.round(map.getZoom()*10)/10)
+if(map.getZoom() >14){linesize = 8}else{linesize=3}
+for(i=0;i<linienliste.length;i++){
+map.setPaintProperty(linienliste[i].name +"l", 'line-width', linesize);
+}
+})
+map.on('pitch', function() { d3.select('#gu1').property('value',90-Math.round(map.getPitch()))})
+map.on('move', function() { d3.select('#gu2').property('value',Math.round(map.getBearing()))})
+
+
+
+  </script>
+  </html>

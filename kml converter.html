@@ -92,10 +92,10 @@ document.getElementById('cvsInput').addEventListener('change', function(event) {
         console.log(columns);
 
         laufer ={mara:[],half:[],tenkm:[]} // ,fivekm:[],twofivekm:[]
-        for(i=0;i<columns.mara1.length;i++){
+        for(i=0;i<columns.mara-netto.length;i++){
 if(columns.mara2[i] != undefined){
-            start = timeToSeconds(columns.mara2[i])-timeToSeconds(columns.mara1[i])
-            speed = 42195/ (timeToSeconds(columns.mara1[i]))
+            start = timeToSeconds(columns.mara2[i])-timeToSeconds(columns.mara-netto[i])
+            speed = 42195/ (timeToSeconds(columns.mara-netto[i]))
             laufer.mara.push([start,speed])
 }
         }

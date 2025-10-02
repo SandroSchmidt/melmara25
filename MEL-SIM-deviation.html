@@ -220,17 +220,7 @@ const value = localStorage.getItem(key);
 
 // Check if the value exists
 delay={mara:60+330,maraslow:60+330,half:120+330,tenkm:90+330,fivekm:330+345,twofivekm:360+345,marafull:60+330}
-if (value !== null) {
 
-  delay = JSON.parse(value)
-  console.log(JSON.parse(value));
-  console.log("gelesen von locals")
-} else {
-    delay={mara:60+360,maraslow:60+360,half:120+360,tenkm:90+360,fivekm:330+360,twofivekm:360+360,marafull:60+360}
-    localStorage.setItem(key, JSON.stringify(delay));
-    console.log('did not exist in local storage.')
-
-}
 
 
 

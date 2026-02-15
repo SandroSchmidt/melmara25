@@ -1,1 +1,1 @@
-﻿window.MAPBOX_TOKEN = "pk_REPLACE_ME";
+﻿window.MAPBOX_TOKEN = "pk.eyJ1Ijoic2FuZHJvc2NobWlkdCIsImEiOiJjbHg3bTMxYmwxMXZiMmtzY2tlN3RjNGY5In0.2whcv8hzfzdyukPAXWwSPw";

@@ -1,0 +1,1 @@
+﻿window.MAPBOX_TOKEN = "pk_REPLACE_ME";

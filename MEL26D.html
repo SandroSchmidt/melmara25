@@ -1,0 +1,1959 @@
+﻿<!DOCTYPE html>
+<head>
+  <!-- Externe Daten/Libs -->
+  <script src="./roaddata-devi.js"></script>
+  <script src="./d3.min.js"></script>
+  <script src="./run26fg.js"></script>
+<script src="./mapbox_token.local.js"></script>
+  <!-- Mapbox GL -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+
+  <title>MEL_MARA_SIM26</title>
+</head>
+
+<style>
+  :root{
+    --bg: #0b0f17;
+    --panel: #101827;
+    --panel2:#0f172a;
+    --border:#1f2a44;
+    --text:#e5e7eb;
+    --muted:#9ca3af;
+    --shadow: 0 8px 24px rgba(0,0,0,.35);
+    --radius: 14px;
+  }
+
+  *{ box-sizing:border-box; }
+  html, body{ height:100%; margin:0; }
+
+  body{
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background: radial-gradient(1200px 600px at 20% -10%, rgba(59,130,246,.25), transparent 60%),
+                radial-gradient(900px 500px at 80% 10%, rgba(16,185,129,.18), transparent 55%),
+                var(--bg);
+    color: var(--text);
+    overflow:hidden;
+  }
+
+  .app{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:12px;
+  }
+
+  .toolbar{
+    background: linear-gradient(180deg, rgba(16,24,39,.92), rgba(16,24,39,.78));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding:10px;
+  }
+
+  .toolbar__row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .toolbar__group{ display:flex; gap:8px; align-items:center; }
+  .toolbar__group--right{ margin-left:auto; }
+
+  .btn{
+    border:1px solid var(--border);
+    background: rgba(59,130,246,.18);
+    color: var(--text);
+    padding:8px 10px;
+    border-radius: 10px;
+    cursor:pointer;
+  }
+  .btn:hover{ filter: brightness(1.08); }
+  .btn--ghost{ background: rgba(255,255,255,.04); }
+
+  .slider{
+    flex: 1 1 420px;
+    min-width: 260px;
+  }
+
+  .field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 8px;
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.03);
+    border-radius: 10px;
+  }
+  .field > span{ color: var(--muted); font-size:12px; }
+  .field input{
+    width: 88px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    outline:none;
+  }
+
+  .kpi{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    padding:6px 8px;
+    border:1px solid var(--border);
+    background: rgba(255,255,255,.03);
+    border-radius: 10px;
+  }
+  .kpi__item{ display:flex; flex-direction:column; line-height:1.1; }
+  .kpi__label{ color: var(--muted); font-size:12px; }
+  .kpi__value{ font-variant-numeric: tabular-nums; font-size:14px; }
+
+  .content{
+    flex:1;
+    min-height:0;
+    display:flex;
+    gap:12px;
+  }
+
+  .pane{ min-height:0; }
+
+  .pane--map{
+    flex: 0 0 60%;
+    background: rgba(255,255,255,.02);
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    overflow:hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .mapboxgl-popup-content,
+.mapboxgl-popup-content * {
+  color: #000;
+}
+
+  #map{ width:100%; height:100%; }
+
+  .pane--charts{
+    flex: 1 1 auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    min-height:0;
+    min-width: 0;
+  }
+
+  .card{
+    flex: 1 1 50%;
+    min-height:0;
+    background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(15,23,42,.72));
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    min-width: 0;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .card__title{
+    padding:10px 12px;
+    border-bottom:1px solid rgba(31,42,68,.8);
+    color: var(--text);
+    font-size: 13px;
+    letter-spacing: .2px;
+  }
+  .card__body{
+    flex:1;
+    min-height:0;
+    min-width: 0;
+    padding:10px;
+  }
+
+  /* =========================
+     Settings Drawer (rechts)
+     ========================= */
+  .drawer{
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    background: linear-gradient(180deg, rgba(16,24,39,.96), rgba(15,23,42,.92));
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transform: translateX(100%);
+    transition: transform 180ms ease;
+    z-index: 1000;
+    display:flex;
+    flex-direction:column;
+  }
+  .drawer.is-open{ transform: translateX(0); }
+
+  .drawer__header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px;
+    border-bottom:1px solid rgba(31,42,68,.8);
+  }
+  .drawer__title{
+    font-size: 13px;
+    letter-spacing:.2px;
+    color: var(--text);
+  }
+  .drawer__body{
+    padding:12px;
+    overflow:auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .drawer__section{
+    border:1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255,255,255,.03);
+    padding:10px;
+  }
+  .drawer__section-title{
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .drawer__grid{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:10px;
+  }
+
+  .backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 999;
+    display:none;
+  }
+  .backdrop.is-open{ display:block; }
+</style>
+
+<body>
+  <div class="app">
+
+    <header class="toolbar">
+      <div class="toolbar__row">
+        <div class="toolbar__group">
+          <!-- Play/Stop: Logik bleibt unverändert (nur UI umgebaut) -->
+          <button class="btn" id="playbut" onclick="
+  play = !play;
+  if (play) realtime = false;
+  syncPlayUI();
+  zeitgewahlt(Math.round(tim));
+">play</button>
+
+
+          <!-- Realtime/Stop: Logik bleibt unverändert -->
+          <button class="btn" id="realbutton" onclick="
+  realtime = !realtime;
+  if (realtime) play = false;
+  syncPlayUI();
+  zeitgewahlt(Math.round(tim));
+">realtime</button>
+
+
+          <!-- Reset: Logik bleibt unverändert -->
+          <button class="btn btn--ghost" onclick="
+            map.setPitch(45); map.setBearing(0); map.setZoom(12); map.setCenter([144.94,-37.8173614]);
+            d3.select('#gu1').property('value','45');
+            d3.select('#gu2').property('value','0');
+            d3.select('#gu3').property('value','15');
+            zeitgewahlt(360); tim=360;
+            play = false;
+realtime = false;
+syncPlayUI();
+
+          ">reset</button>
+        </div>
+
+        <div class="toolbar__group toolbar__group--right">
+          <!-- Settings: öffnet Drawer von rechts -->
+          <button class="btn btn--ghost" id="settingsBtn" type="button">settings</button>
+        </div>
+      </div>
+
+      <div class="toolbar__row">
+        <!-- Zeitslider: steuert tim (nur wenn nicht play) -->
+        <input class="slider" type="range" id="myRange"
+          onchange="if(play==false){tim=Math.round(this.value); zeitgewahlt(Math.round(tim));}"
+          value="60" min="360" max="900" step="1" />
+
+        <div class="kpi">
+          <div class="kpi__item">
+            <span class="kpi__label">time</span>
+            <span id="uhr" class="kpi__value">00:00</span>
+          </div>
+          <div class="kpi__item">
+            <span class="kpi__label">guntime</span>
+            <span id="gunuhr" class="kpi__value">00:00</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="pane pane--map">
+        <div id="map"></div>
+      </section>
+
+      <aside class="pane pane--charts">
+        <section class="card">
+          <div id="timelineChartTitle"  class="card__title">Timeline</div>
+          <div id="chartTime" class="card__body"></div>
+        </section>
+
+        <section class="card">
+          <div id="chartDistanceTitle" class="card__title">Runners per 100m at current time</div>
+          <div id="chartDistance" class="card__body"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Backdrop (klickbar zum Schließen) -->
+  <div class="backdrop" id="settingsBackdrop"></div>
+
+  <!-- =========================
+       Settings Drawer (rechts)
+       ========================= -->
+  <aside class="drawer" id="settingsDrawer" aria-hidden="true">
+    <div class="drawer__header">
+      <div class="drawer__title">Settings</div>
+      <button class="btn btn--ghost" id="settingsCloseBtn" type="button">close</button>
+    </div>
+
+    <div class="drawer__body">
+      <!-- Playback / Kamera -->
+      <div class="drawer__section">
+        <div class="drawer__section-title">Playback & Camera</div>
+        <div class="drawer__grid">
+          <!-- Speed (war vorher oben rechts in der Toolbar) -->
+          <label class="field">
+            <span>speed</span>
+            <input value="1" id="spedset" type="number" min="1" max="5"
+              onchange="autoplayspeed=this.value/10;"/>
+          </label>
+
+          <!-- Pitch/Bearing/Zoom (waren vorher in der Toolbar; IDs bleiben gleich) -->
+          <label class="field">
+            <span>pitch</span>
+            <input id="gu1" type="number" value="45" step="1" min="15" max="90" oninput="map.setPitch(90-this.value)"/>
+          </label>
+
+          <label class="field">
+            <span>bearing</span>
+            <input id="gu2" type="number" value="0" step="1" min="-90" max="90" oninput="map.setBearing(this.value)"/>
+          </label>
+
+          <label class="field">
+            <span>zoom</span>
+            <input id="gu3" type="number" value="15" step="0.1" min="12" max="17" oninput="map.setZoom(this.value)"/>
+          </label>
+        </div>
+      </div>
+
+      <!-- Race start times (neu, damit die IDs existieren und editierbar sind) -->
+      <div class="drawer__section">
+        <div class="drawer__section-title">Race start times</div>
+        <div class="drawer__grid">
+          <!-- Hinweis: Diese Inputs existierten vorher nicht, wurden aber im JS bereits selektiert. -->
+          <label class="field">
+            <span>marathon</span>
+           <input id="maratimset" type="time"
+  onchange="setRaceStart('mara', convertTimeToMinutes(this.value)); if(!play){zeitgewahlt(Math.round(tim));}"/>
+</label>
+
+         
+          <label class="field">
+            <span>halfmarathon</span>
+           
+<input id="halftimset" type="time"
+  onchange="setRaceStart('half', convertTimeToMinutes(this.value)); if(!play){zeitgewahlt(Math.round(tim));}"/>
+    </label>
+
+          <label class="field">
+            <span>10km run</span>
+       <input id="tenkmtimset" type="time"
+  onchange="setRaceStart('tenkm', convertTimeToMinutes(this.value)); if(!play){zeitgewahlt(Math.round(tim));}"/>
+          </label>
+
+          <label class="field">
+            <span>5km run</span>
+         <input id="fivekmtimset" type="time"
+  onchange="setRaceStart('fivekm', convertTimeToMinutes(this.value)); if(!play){zeitgewahlt(Math.round(tim));}"/>
+      </label>
+
+          <label class="field">
+            <span>3km run</span>
+          
+<input id="twofivetimset" type="time"
+  onchange="setRaceStart('twofive', convertTimeToMinutes(this.value)); if(!play){zeitgewahlt(Math.round(tim));}"/>
+
+          </label>
+        </div>
+      </div>
+      <div class="drawer__section">
+  <div class="drawer__section-title">Visible races</div>
+  <div class="drawer__grid">
+<label class="field">
+  <input id="chk_mara" type="checkbox"
+    onchange="setRaceActive('mara', this.checked); zeitgewahlt(Math.round(tim));">
+  <span>marathon</span>
+</label>
+
+<label class="field">
+  <input id="chk_half" type="checkbox"
+    onchange="setRaceActive('half', this.checked); zeitgewahlt(Math.round(tim));">
+  <span>halfmarathon</span>
+</label>
+
+<label class="field">
+  <input id="chk_tenkm" type="checkbox"
+    onchange="setRaceActive('tenkm', this.checked); zeitgewahlt(Math.round(tim));">
+  <span>10km run</span>
+</label>
+
+<label class="field">
+  <input id="chk_fivekm" type="checkbox"
+    onchange="setRaceActive('fivekm', this.checked); zeitgewahlt(Math.round(tim));">
+  <span>5km run</span>
+</label>
+
+<label class="field">
+  <input id="chk_twofive" type="checkbox"
+    onchange="setRaceActive('twofive', this.checked); zeitgewahlt(Math.round(tim));">
+  <span>3 km run</span>
+</label>
+
+  </div>
+</div>
+
+    </div>
+  </aside>
+</body>
+
+<!--
+  WICHTIG:
+  Diese zweite body-Regel war im Original vorhanden und überschreibt die obere Schriftwahl.
+  Um das Aussehen nicht unbeabsichtigt zu verändern, bleibt sie erhalten.
+-->
+<style>
+  body {
+    font-family: Arial, sans-serif;
+  }
+</style>
+
+<script>
+
+  /* =========================================
+     UI: Settings Drawer (nur Anzeige/Interaktion)
+     ========================================= */
+
+  (function initSettingsDrawer(){
+    const btn = document.getElementById('settingsBtn');
+    const drawer = document.getElementById('settingsDrawer');
+    const backdrop = document.getElementById('settingsBackdrop');
+    const closeBtn = document.getElementById('settingsCloseBtn');
+
+    function openDrawer(){
+      drawer.classList.add('is-open');
+      backdrop.classList.add('is-open');
+      drawer.setAttribute('aria-hidden','false');
+    }
+    function closeDrawer(){
+      drawer.classList.remove('is-open');
+      backdrop.classList.remove('is-open');
+      drawer.setAttribute('aria-hidden','true');
+    }
+
+    btn.addEventListener('click', openDrawer);
+    closeBtn.addEventListener('click', closeDrawer);
+    backdrop.addEventListener('click', closeDrawer);
+
+    // ESC schließt Drawer
+    window.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') closeDrawer();
+    });
+  })();
+
+  /* =========================================
+     Original-Logik (nur aufgeräumt + kommentiert)
+     ========================================= */
+
+  // Flags / State
+  realtime = false;
+  coltoggle = false;
+  play = false;
+  // Annahmen
+const MARATHON_SPEED_KMH = 42.195 / 4;     // 10.54875 km/h
+const CAPACITY_PER_M = 82;                 // Pers / min / m
+
+const MARATHON_SPEED_MS = MARATHON_SPEED_KMH / 3.6; // ≈ 2.93 m/s
+
+function ceilToHundred(v){
+  if (!isFinite(v) || v <= 0) return 100;
+  return Math.max(100, Math.ceil(v / 100) * 100);
+}
+
+  // Active races (default: alle sichtbar)
+let activeRaces = {
+  mara: true,
+ 
+  half: true,
+  tenkm: false,
+  fivekm: false,
+  twofive: false
+};
+
+function minRoadWidthFromDensity(mengePer100m){
+  // mengePer100m = Läufer pro 100 m
+
+  const densityPerMeter = mengePer100m / 100;             // Pers / m
+  const flowPerSecond  = densityPerMeter * MARATHON_SPEED_MS;
+  const flowPerMinute  = flowPerSecond * 60;
+
+  // notwendige Breite in Metern
+  return flowPerMinute / CAPACITY_PER_M;
+}
+
+function isRaceActive(key){
+  return activeRaces[key] === true;
+}
+
+
+  // Letzte ermittelte Indizes (wird später überschrieben)
+  filast = { mara:{}, half:{}, tenkm:{}, fivekm:{}, twofive:{} };
+  starterzahlen ={ mara:(20000),half:16000,tenkm:15000,fivekm:10000,twofive:3000,marafull:20000}
+  // Autoplay-Speed (wird über Settings Input gesetzt: spedset => /10)
+  autoplayspeed = 0.5;
+
+  // Koordinaten minimal „entflechten“ (visuelle Separation der Routen)
+  // Hinweis: Das ist eine bewusste Manipulation der Daten, um Overlap zu vermeiden.
+  coordinates.mara.forEach((item) => {
+    item[1] = item[1] + 0.00005;
+    item[0] = item[0] + 0.00005;
+  });
+
+  coordinates.tenkm.forEach((item) => {
+    item[1] = item[1] - 0.00010;
+    // item[0] = item[0] + 0.00005
+  });
+
+
+
+  coordinates.half.forEach((item) => {
+    item[1] = item[1] - 0.00005;
+    item[0] = item[0] - 0.00005;
+  });
+
+  let selectedProbe = {
+  raceKey: "mara",
+  segIndex: 0
+};
+  // Farbskalen pro Rennen (Runner/100m => Farbverlauf)
+  colorScale = {
+    mara: d3.scaleLinear().domain([0, 500]).range(["red","black"]),
+    half: d3.scaleLinear().domain([0, 500]).range(["blue","black"]),
+    tenkm: d3.scaleLinear().domain([0, 500]).range(["green","black"]),
+    fivekm: d3.scaleLinear().domain([0, 500]).range(["pink","black"]),
+    twofive: d3.scaleLinear().domain([0, 500]).range(["#09ebdc","black"])
+  };
+
+  // Menge => Kreisradius / Linienbreite
+  const mengeScale = d3.scaleLinear().domain([0, 500]).range([3,10]);
+
+  // Anzeigenamen pro Race-Key (User-facing: Englisch)
+  racenames = {
+    mara: "marathon",
+    marafull:"Marathon (full data)",
+
+    half: "halfmarathon",
+    tenkm: "10km run",
+    fivekm: "5km run",
+    twofive: "3km run"
+  };
+
+  // Cutoffs (Ende) pro Rennen (Minutenwerte, in Kombination mit delay genutzt)
+  cutoff = {
+    mara: 8*60 + 360 + 60,
+
+    half: 5*60 + 360 + 120,
+    tenkm: 5*60 + 360 + 90,
+    fivekm: 3*60 + 330 + 360,
+    twofive: 3*60 + 360 + 360,
+    marafull: 60 + 330
+  };
+cutoff.marafull = cutoff.mara;
+
+
+  // Aktuelle Simulationszeit (Minuten seit 00:00)
+  tim = 360;
+
+  // Hinweis: Diese localStorage-Abfrage ist im Original vorhanden,
+  // wird aber aktuell nicht weiter genutzt (value bleibt ungenutzt).
+  key = "delay";
+  const value = localStorage.getItem(key);
+
+  // Startzeiten (delay) pro Rennen
+  // Werte sind Minuten (hh*60 + mm).
+  delay = {
+    mara: 60 + 330,
+    
+    half: 120 + 330,
+    tenkm: 90 + 330,
+    fivekm: 330 + 345,
+    twofive: 360 + 345,
+    marafull: 60 + 330
+  };
+delay.marafull = delay.mara;
+const saved = loadSettings();
+
+// delay aus Storage
+delay.mara = saved.delay.mara;
+delay.half = saved.delay.half;
+delay.tenkm = saved.delay.tenkm;
+delay.fivekm = saved.delay.fivekm;
+delay.twofive = saved.delay.twofive;
+delay.marafull = delay.mara;
+
+// activeRaces aus Storage
+activeRaces.mara = saved.activeRaces.mara;
+activeRaces.half = saved.activeRaces.half;
+activeRaces.tenkm = saved.activeRaces.tenkm;
+activeRaces.fivekm = saved.activeRaces.fivekm;
+activeRaces.twofive = saved.activeRaces.twofive;
+
+  // UI initialisieren (IDs existieren jetzt im Settings Drawer)
+  d3.select('#maratimset').property("value", convertMinutesToTime(delay.mara));
+  d3.select('#halftimset').property("value", convertMinutesToTime(delay.half));
+  d3.select('#tenkmtimset').property("value", convertMinutesToTime(delay.tenkm));
+  d3.select('#fivekmtimset').property("value", convertMinutesToTime(delay.fivekm));
+  d3.select('#twofivetimset').property("value", convertMinutesToTime(delay.twofive));
+
+
+
+
+  d3.select("#myRange").property("value", tim);
+  d3.select('#spedset').property("value", 5);
+
+  // GeoJSON-Caches für Mapbox
+  linejsons = {};
+  pointjsons = {};
+
+  for (const key in coordinates) {
+    linejsons[key] = generateColoredGeoJSON(coordinates[key]);
+    pointjsons[key] = coordinatesToGeoJSON(coordinates[key]);
+  }
+
+  // Karte initialisieren
+  initialise_map();
+
+  /* =========================
+     Helper: Zeit-Konvertierung
+     ========================= */
+
+  function convertTimeToMinutes(time) {
+    // Input erwartet "hh:mm"
+    const [hours, minutes] = time.split(':').map(Number);
+    const totalMinutes = (hours * 60) + minutes;
+    return totalMinutes;
+  }
+
+  function convertMinutesToTime(temp) {
+    const hours = Math.floor(temp / 60);
+    const minutes = temp % 60;
+
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}`;
+  }
+// =========================
+// LocalStorage: Settings
+// =========================
+const LS_KEY = "mel_mara_sim26_settings_v1";
+
+function defaultSettings(){
+  return {
+    delay: {
+      mara: 60 + 330,
+      half: 120 + 330,
+      tenkm: 90 + 330,
+      fivekm: 330 + 345,
+      twofive: 360 + 345
+    },
+    activeRaces: {
+      mara: true,
+      half: true,
+      tenkm: false,
+      fivekm: false,
+      twofive: false
+    }
+  };
+}
+
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return defaultSettings();
+    const parsed = JSON.parse(raw);
+
+    // Merge defensiv (falls neue Felder dazukommen)
+    const def = defaultSettings();
+
+    const out = {
+      delay: { ...def.delay, ...(parsed.delay || {}) },
+      activeRaces: { ...def.activeRaces, ...(parsed.activeRaces || {}) }
+    };
+
+    // Typen absichern
+    Object.keys(out.delay).forEach(k => {
+      const v = out.delay[k];
+      if (typeof v !== "number" || !isFinite(v)) out.delay[k] = def.delay[k];
+    });
+    Object.keys(out.activeRaces).forEach(k => {
+      out.activeRaces[k] = !!out.activeRaces[k];
+    });
+
+    return out;
+  }catch(e){
+    console.warn("[settings] load failed, using defaults", e);
+    return defaultSettings();
+  }
+}
+
+function saveSettings(){
+  try{
+    const payload = {
+      delay: {
+        mara: delay.mara,
+        half: delay.half,
+        tenkm: delay.tenkm,
+        fivekm: delay.fivekm,
+        twofive: delay.twofive
+      },
+      activeRaces: {
+        mara: !!activeRaces.mara,
+        half: !!activeRaces.half,
+        tenkm: !!activeRaces.tenkm,
+        fivekm: !!activeRaces.fivekm,
+        twofive: !!activeRaces.twofive
+      }
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+  }catch(e){
+    console.warn("[settings] save failed", e);
+  }
+}
+
+// Setter, damit UI + state + storage konsistent bleiben
+function setRaceStart(raceKey, minutes){
+  delay[raceKey] = minutes;
+
+  // falls du marafull weiter als mara spiegeln willst:
+  if (raceKey === "mara" && delay.marafull !== undefined) delay.marafull = minutes;
+
+  saveSettings();
+}
+
+function setRaceActive(raceKey, isOn){
+  activeRaces[raceKey] = !!isOn;
+  saveSettings();
+}
+
+function applySettingsToUI(){
+  // Zeiten in Inputs
+  d3.select('#maratimset').property("value", convertMinutesToTime(delay.mara));
+  d3.select('#halftimset').property("value", convertMinutesToTime(delay.half));
+  d3.select('#tenkmtimset').property("value", convertMinutesToTime(delay.tenkm));
+  d3.select('#fivekmtimset').property("value", convertMinutesToTime(delay.fivekm));
+  d3.select('#twofivetimset').property("value", convertMinutesToTime(delay.twofive));
+
+  // Checkboxen im Drawer (falls du IDs ergänzt, siehe unten)
+  const ids = {
+    mara: "chk_mara",
+    half: "chk_half",
+    tenkm: "chk_tenkm",
+    fivekm: "chk_fivekm",
+    twofive: "chk_twofive"
+  };
+  Object.keys(ids).forEach(k => {
+    const el = document.getElementById(ids[k]);
+    if (el) el.checked = !!activeRaces[k];
+  });
+}
+
+  /* =========================
+     Kern: Zeitsteuerung
+
+     ========================= */
+
+  function zeitgewahlt(timr) {
+  markers[3].setLngLat([0,0])
+    markers[4].setLngLat([0,0])
+      markers[5].setLngLat([0,0])
+        markers[6].setLngLat([0,0])
+          markers[7].setLngLat([0,0])
+     markers[8].setLngLat([0,0])
+       markers[9].setLngLat([0,0])
+         markers[10].setLngLat([0,0])
+           markers[11].setLngLat([0,0])
+    // Slider + Zeit-KPIs aktualisieren
+    d3.select("#myRange").property("value", timr);
+    d3.select('#uhr').text(convertMinutesToTime(Math.round(timr)));
+    d3.select('#gunuhr').text(convertMinutesToTime(Math.max(0, Math.round(timr - delay.mara))));
+
+
+
+    // Pro Rennen die Linien-/Punkt-Styles nach Menge (Runner/100m) setzen
+    for (const key in coordinates) {
+
+  if (!isRaceActive(key)) {
+    // Map-Layer ausblenden
+    map.setLayoutProperty("lines-layer-" + key, "visibility", "none");
+    map.setLayoutProperty("circles-layer-" + key, "visibility", "none");
+    continue;
+  } else {
+    map.setLayoutProperty("lines-layer-" + key, "visibility", "visible");
+    map.setLayoutProperty("circles-layer-" + key, "visibility", "visible");
+  }
+
+  // bestehende Logik läuft unverändert weiter
+
+
+      // kk = „Race time“ (Simulation minus Startzeit)
+      let kk = Math.max(0, timr - delay[key]);
+      kkk = kk;
+
+
+
+      if (kk < woist[key].length) {
+
+        for (i = 0; i < coordinates[key].length - 1; i++) {
+
+          // Spezialfall: frühe Phase nutzt marafull-Daten für mara/m
+          const row = getDensityRowAbsTime(key, timr);
+menge = runnersPer100mFromRow(row, i);
+
+
+          strokec = 0;
+          stroke = Math.min(10, mengeScale(menge));
+          rad = Math.min(10, mengeScale(menge));
+
+          // Keine Menge => unsichtbar
+          if (menge < 1) { stroke = 0; rad = 0; strokec = 0; }
+
+          // Farbe aus Skala
+          col = colorScale[key](menge);
+
+          // Vor Start oder nach Cutoff => unsichtbar
+          if (timr < delay[key] || timr > cutoff[key] + delay[key]) { stroke = 0; strokec = 0; rad = 0; }
+
+          
+
+ const b0 = Math.floor(i / BUCKET_SIZE_25M) * BUCKET_SIZE_25M;
+const bucketKm = (b0 + BUCKET_SIZE_25M / 2) / 40;
+
+          // Punkt-Properties (Popup-Text ist User-facing: Englisch)
+          pointjsons[key].features[i+1].properties.radius = rad;
+          pointjsons[key].features[i+1].properties.stroke = strokec;
+          pointjsons[key].features[i+1].properties.fill = col;
+          const minWidth = minRoadWidthFromDensity(menge);
+
+pointjsons[key].features[i+1].properties.text =
+  "<b>" + racenames[key] + "</b><br>" +
+  bucketKm.toFixed(2) + " km<br>" +
+  convertMinutesToTime(timr) + "<br>" +
+  menge + " runners / 100m<br>" +
+  "min. road width: " + Math.max(1,minWidth.toFixed(2)) + " m";
+
+          // Linien-Properties
+          linejsons[key].features[i].properties.stroke = col;
+          linejsons[key].features[i].properties.width = stroke;
+        }
+
+      } else {
+
+        // Wenn kk außerhalb des verfügbaren woist-Arrays ist:
+        // Im Original wird hier weiterhin `menge` in den Text gerendert, obwohl es in diesem Block nicht gesetzt wird.
+        // Das kann zu "undefined" in der Anzeige führen (oder alte Werte „durchrutschen“).
+        // Vorgabe von dir: NUR kommentieren, keine funktionale Änderung.
+        for (i = 0; i < coordinates[key].length - 1; i++) {       const b0 = Math.floor(i / BUCKET_SIZE_25M) * BUCKET_SIZE_25M;
+const bucketKm = (b0 + BUCKET_SIZE_25M / 2) / 40;
+
+          pointjsons[key].features[i+1].properties.radius = 0;
+          pointjsons[key].features[i+1].properties.stroke = 0;
+          pointjsons[key].features[i+1].properties.fill = "yellow";
+          pointjsons[key].features[i+1].properties.text =
+            "<b>" + racenames[key] + "</b><br> " +
+
+bucketKm.toFixed(2) + " km <br>" +
+
+            convertMinutesToTime(timr) + " <br> " +
+            menge + " runners/100m ";
+          linejsons[key].features[i].properties.stroke = "yellow";
+          linejsons[key].features[i].properties.width = 0;
+        }
+      }
+
+      // GeoJSON in Mapbox aktualisieren
+      map.getSource('line-segments' + key).setData(linejsons[key]);
+      map.getSource('circles' + key).setData(pointjsons[key]);
+
+      // Indizes (first/last non-zero) aus den Mengenarrays bestimmen
+      filast = findIndices(woist[key][kkk]);
+
+      // Marker-Positionen pro Rennen aktualisieren (Logik unverändert)
+      if (key == "mara") {
+        if (filast[0] != 0 && timr < delay[key] + 131) { markers[2].setLngLat(coordinates[key][filast[0] + 1]); } else { markers[2].setLngLat([0,0]); }
+        if (filast[1] != 0) { markers[3].setLngLat(coordinates[key][filast[1] - 1]); } else { markers[3].setLngLat([0,0]); }
+      }
+
+      
+      if (key == "half") {
+        if (filast[0] != 0 && timr < delay[key] + 62) { markers[4].setLngLat(coordinates[key][filast[0] + 1]); } else { markers[4].setLngLat([0,0]); }
+        if (filast[1] != 0) { markers[5].setLngLat(coordinates[key][filast[1] - 1]); } else { markers[5].setLngLat([0,0]); }
+      }
+        if (key == "tenkm") {
+        if (filast[0] != 0 && timr < delay[key] + 30) { markers[6].setLngLat(coordinates[key][filast[0] + 1]); } else { markers[6].setLngLat([0,0]); }
+        if (filast[1] != 0) { markers[7].setLngLat(coordinates[key][filast[1] - 1]); } else { markers[7].setLngLat([0,0]); }
+      }
+
+      if (key == "fivekm") {
+    //    if (filast[0] != 0 && timr < delay[key] + 16) { markers[8].setLngLat(coordinates[key][filast[0] + 1]); } else { markers[8].setLngLat([0,0]); }
+   //   if (filast[1] != 0) { markers[9].setLngLat(coordinates[key][filast[1] - 1]); } else { markers[9].setLngLat([0,0]);
+    }
+      
+
+      if (key == "twofive") {
+    //    if (filast[0] != 0 && timr < delay[key] + 9) { markers[10].setLngLat(coordinates[key][filast[0] + 1]); } else { markers[10].setLngLat([0,0]); }
+   //     if (filast[1] != 0) { markers[11].setLngLat(coordinates[key][filast[1] - 1]); } else { markers[11].setLngLat([0,0]); 
+   }
+      
+    }
+
+    updateDistanceChart(timr);
+
+if (timelineMode === "chart") {
+  updateTimelineChart(timr, selectedProbe.raceKey, selectedProbe.segIndex);
+} else {
+  renderStatusTable(timr);
+}
+  }
+
+  /* =========================
+     Autoplay / Realtime Ticker
+     ========================= */
+
+  setInterval(function () {
+    // Autoplay-Ende
+    if (tim > 359 + 9*60 && play) {
+  play = false;
+  syncPlayUI();
+}
+
+    // Play: tim läuft hoch
+    if (play == true) {
+      tim = tim + autoplayspeed;
+      zeitgewahlt(Math.round(tim));
+    }
+
+    // Realtime: tim wird aus Systemzeit abgeleitet
+    if (realtime == true) {
+      now = new Date();
+      tim2 = (now.getHours() * 60) + now.getMinutes();
+
+      // Nur im sichtbaren Range aktualisieren
+      if (tim2 > 359.9 && tim2 < 900.1) {
+        zeitgewahlt(Math.round(tim2));
+      }
+    }
+  }, 50);
+
+
+  /* =========================================
+   D3 Timeline Chart (Durchfluss/Dichte am Messpunkt)
+   ========================================= */
+  // Daten pro Race-Key zusammenstellen
+  const keys = ["mara", "half", "tenkm", "fivekm", "twofive"];
+const timelineChart = {
+  
+  svg: null,
+  g: null,
+  width: 0,
+  height: 0,
+  margin: { top: 10, right: 16, bottom: 28, left: 46 },
+  x: null,
+  y: null,
+  xAxisG: null,
+  yAxisG: null,
+  path: null,
+  cursor: null,
+  titleText: null
+};
+timelineChart.zoom = false;        // <-- NEU
+timelineChart.zoomWindow = 30;     // +/- 30 min
+timelineChart.container = null;    // DOM-Ref
+let timelineMode = "chart"; // "chart" | "table"
+let lastStatusReason = null; // "start" | "finish"
+function initTimelineChart() {
+  const container = document.getElementById("chartTime");
+  timelineChart.container = container;
+
+  if (!container) return;
+
+  d3.select(container).selectAll("*").remove();
+
+  const rect = container.getBoundingClientRect();
+  timelineChart.width = Math.max(320, rect.width);
+  timelineChart.height = Math.max(180, rect.height);
+
+  const innerW = timelineChart.width - timelineChart.margin.left - timelineChart.margin.right;
+  const innerH = timelineChart.height - timelineChart.margin.top - timelineChart.margin.bottom;
+
+  timelineChart.svg = d3.select(container)
+    .append("svg")
+    .attr("width", timelineChart.width)
+    .attr("height", timelineChart.height);
+
+  timelineChart.g = timelineChart.svg.append("g")
+    .attr("transform", `translate(${timelineChart.margin.left},${timelineChart.margin.top})`);
+
+  // x: absolute minutes (dein Simulationsfenster)
+  timelineChart.x = d3.scaleLinear().domain([360, 900]).range([0, innerW]);
+  timelineChart.y = d3.scaleLinear().domain([0, 200]).range([innerH, 0]);
+
+  timelineChart.xAxisG = timelineChart.g.append("g")
+    .attr("transform", `translate(0,${innerH})`);
+
+  timelineChart.yAxisG = timelineChart.g.append("g");
+
+
+
+  timelineChart.path = timelineChart.g.append("path")
+    .attr("fill", "none")
+    .attr("stroke-width", 2);
+
+  // Cursor-Linie (aktuelle timr)
+  timelineChart.cursor = timelineChart.g.append("line")
+    .attr("y1", 0)
+    .attr("y2", innerH)
+    .attr("stroke", "rgba(229,231,235,.6)")
+    .attr("stroke-width", 1)
+    .attr("stroke-dasharray", "4 4");
+
+  timelineChart.xAxisG.call(
+    d3.axisBottom(timelineChart.x)
+      .ticks(6)
+      .tickFormat(d => convertMinutesToTime(Math.round(d)))
+  );
+
+  timelineChart.yAxisG.call(d3.axisLeft(timelineChart.y).ticks(5));
+
+  window.addEventListener("resize", () => {
+    initTimelineChart();
+    updateTimelineChart(tim, selectedProbe.raceKey, selectedProbe.segIndex);
+  });
+  // Toggle Zoom bei Klick auf das Chart
+timelineChart.svg.on("click", () => {
+  timelineChart.zoom = !timelineChart.zoom;
+  updateTimelineChart(tim, selectedProbe.raceKey, selectedProbe.segIndex);
+});
+
+}
+function showStatusTable(reason){ // reason: "start" | "finish"
+  timelineMode = "table";
+  lastStatusReason = reason;
+  renderStatusTable(tim);
+}
+
+function sumRow(row){
+  if (!row) return 0;
+  let s = 0;
+  for (let i = 0; i < row.length; i++) {
+    const v = row[i];
+    if (typeof v === "number" && isFinite(v)) s += v;
+  }
+  return s;
+}
+const BUCKET_SIZE_25M = 4; // 4 * 25m = 100m
+
+function getDensityRowAbsTime(raceKey, timAbsMinutes) {
+  const kk = Math.max(0, Math.round(timAbsMinutes - delay[raceKey]));
+  if (!woist[raceKey] || kk < 0 || kk >= woist[raceKey].length) return null;
+
+ 
+
+  return woist[raceKey][kk];
+}
+
+function runnersPer100mFromRow(row, segIndex25m) {
+  if (!row) return 0;
+
+  // 25m-Segmentindex -> Start des 100m-Buckets
+  const b0 = Math.floor(segIndex25m / BUCKET_SIZE_25M) * BUCKET_SIZE_25M;
+
+  let s = 0;
+  for (let j = 0; j < BUCKET_SIZE_25M; j++) {
+    const v = row[b0 + j];
+    if (typeof v === "number" && isFinite(v)) s += v;
+  }
+  return s;
+}
+
+function getWoistRow(raceKey, kk, timAbsMinutes){
+  if (!woist[raceKey] || kk < 0 || kk >= woist[raceKey].length) return null;
+
+ 
+
+  return woist[raceKey][kk];
+}
+
+function showTimelineChart(){
+  timelineMode = "chart";
+  lastStatusReason = null;
+  // Container leeren und Chart neu initialisieren/zeichnen
+  initTimelineChart();
+  updateTimelineChart(tim, selectedProbe.raceKey, selectedProbe.segIndex);
+}
+
+function getDensityAt(raceKey, timAbsMinutes, segIndex25m) {
+  // Vor Start / nach Cutoff: 0
+  if (timAbsMinutes < delay[raceKey] || timAbsMinutes > cutoff[raceKey] + delay[raceKey]) return 0;
+
+
+
+  const row = getDensityRowAbsTime(raceKey, timAbsMinutes);
+  if (!row) return 0;
+
+  return runnersPer100mFromRow(row, segIndex25m); // <-- 100m Summe aus 4×25m
+}
+
+function updateTimelineChart(timr, raceKey, segIndex) {
+  if (!isRaceActive(raceKey)) {
+  d3.select("#timelineChartTitle").text("race hidden");
+  timelineChart.path.attr("d", null);
+  return;
+}
+
+  if (!timelineChart.svg) return;
+
+  const innerW = timelineChart.width - timelineChart.margin.left - timelineChart.margin.right;
+  const innerH = timelineChart.height - timelineChart.margin.top - timelineChart.margin.bottom;
+
+  // Zeitachse: 360..900 in 1-Minute steps
+// Zeitachse: Full oder Zoom (immer um aktuelle timr herum)
+let t0 = 360, t1 = 900;
+
+if (timelineChart.zoom) {
+  const w = timelineChart.zoomWindow;   // 30
+  t0 = Math.max(360, Math.round(timr - w));
+  t1 = Math.min(900, Math.round(timr + w));
+
+  // Safety: falls timr nahe Rand -> mindestens 2 Minuten Spannweite
+  if (t1 - t0 < 2) {
+    t0 = Math.max(360, t0 - 1);
+    t1 = Math.min(900, t1 + 1);
+  }
+}
+
+  const data = [];
+  let maxY = 0;
+
+  for (let t = t0; t <= t1; t++) {
+    const y = getDensityAt(raceKey, t, segIndex);
+    data.push({ t, y });
+    if (y > maxY) maxY = y;
+  }
+
+  // Y Domain dynamisch (Deckel optional)
+  const yMax = ceilToHundred(maxY * 1.15);
+  timelineChart.x.domain([t0, t1]).range([0, innerW]);
+  timelineChart.y.domain([0, yMax]).range([innerH, 0]);
+
+  timelineChart.xAxisG
+    .attr("transform", `translate(0,${innerH})`)
+    .call(d3.axisBottom(timelineChart.x).ticks(6).tickFormat(d => convertMinutesToTime(Math.round(d))));
+
+  timelineChart.yAxisG
+    .call(d3.axisLeft(timelineChart.y).ticks(5));
+
+  // Linie
+  const line = d3.line()
+    .x(d => timelineChart.x(d.t))
+    .y(d => timelineChart.y(d.y));
+
+  timelineChart.path
+    .attr("stroke", raceLineColor[raceKey] || "#fff")
+    .attr("d", line(data));
+
+  // Cursor
+  const cx = timelineChart.x(timr);
+  timelineChart.cursor
+    .attr("x1", cx)
+    .attr("x2", cx)
+    .attr("y1", 0)
+    .attr("y2", innerH);
+
+  // Titel
+ const b0 = Math.floor(segIndex / BUCKET_SIZE_25M) * BUCKET_SIZE_25M;
+const km = (b0 + BUCKET_SIZE_25M / 2) / 40; // Mitte 100m Bucket
+d3.select("#timelineChartTitle").text(
+  `Runners per 100m of the ${racenames[raceKey] || raceKey} at ${km.toFixed(2)} km`
+);
+
+}
+initTimelineChart();
+
+/* =========================================
+   D3 Distance Chart (0..42 km, 25m bins)
+   ========================================= */
+
+// Basisfarben pro Race (entsprechen den Startfarben deiner Map-Skalen)
+const raceLineColor = {
+  mara: "red",
+
+  half: "blue",
+  tenkm: "green",
+  fivekm: "pink",
+  twofive: "#09ebdc"
+};
+
+// Chart-Objekt (Layout/State)
+const distanceChart = {
+  svg: null,
+  g: null,
+  width: 0,
+  height: 0,
+  margin: { top: 10, right: 16, bottom: 28, left: 46 },
+  x: null,
+  y: null,
+  xAxisG: null,
+  yAxisG: null,
+  pathsG: null,
+  legendG: null
+};
+
+function initDistanceChart() {
+  const container = document.getElementById("chartDistance");
+  if (!container) return;
+
+  // Vorherige Inhalte entfernen (falls Hot-Reload / mehrfach init)
+  d3.select(container).selectAll("*").remove();
+
+  // Container-Abmessungen
+  const rect = container.getBoundingClientRect();
+  distanceChart.width = Math.max(320, rect.width);
+  distanceChart.height = Math.max(180, rect.height);
+
+  const innerW = distanceChart.width - distanceChart.margin.left - distanceChart.margin.right;
+  const innerH = distanceChart.height - distanceChart.margin.top - distanceChart.margin.bottom;
+
+  // SVG
+  distanceChart.svg = d3.select(container)
+    .append("svg")
+    .attr("width", distanceChart.width)
+    .attr("height", distanceChart.height);
+
+  distanceChart.g = distanceChart.svg.append("g")
+    .attr("transform", `translate(${distanceChart.margin.left},${distanceChart.margin.top})`);
+
+  // Skalen: X fix 0..42 km, Y dynamisch (wird in update gesetzt)
+  distanceChart.x = d3.scaleLinear().domain([0, 42]).range([0, innerW]);
+  distanceChart.y = d3.scaleLinear().domain([0, 200]).range([innerH, 0]);
+
+  // Achsen
+  distanceChart.xAxisG = distanceChart.g.append("g")
+    .attr("transform", `translate(0,${innerH})`);
+
+  distanceChart.yAxisG = distanceChart.g.append("g");
+
+  // Layers
+  distanceChart.pathsG = distanceChart.g.append("g");
+ // distanceChart.legendG = distanceChart.svg.append("g")
+   // .attr("transform", `translate(${distanceChart.margin.left},${distanceChart.height - 6})`);
+
+  // Erste Achsenzeichnung
+  distanceChart.xAxisG.call(d3.axisBottom(distanceChart.x).ticks(7).tickFormat(d => `${d} km`));
+  distanceChart.yAxisG.call(d3.axisLeft(distanceChart.y).ticks(5));
+
+  // Resize-Handling
+  window.addEventListener("resize", () => {
+    // Re-init: Layout an neue Card-Größe anpassen
+    initDistanceChart();
+    // Nach Reinit neu zeichnen (mit aktuellem tim)
+    updateDistanceChart(tim);
+  });
+}
+
+function syncPlayUI() {
+  const playBtn = d3.select('#playbut');
+  const realBtn = d3.select('#realbutton');
+
+  playBtn.text(play ? 'stop' : 'play');
+  realBtn.text(realtime ? 'stop' : 'realtime');
+}
+
+function renderStatusTable(timAbsMinutes){
+  
+  const container = document.getElementById("chartTime");
+  if (!container) return;
+
+  d3.select(container).selectAll("*").remove();
+
+  // Optional: Titel anpassen
+  const title = document.getElementById("timelineChartTitle");
+  if (title) {
+    const when = convertMinutesToTime(Math.round(timAbsMinutes));
+    const where = lastStatusReason ? ` – ${lastStatusReason.toUpperCase()}` : "";
+    title.textContent = `Race status at ${when}${where}`;
+  }
+
+  const wrap = d3.select(container).append("div")
+    .style("width", "100%")
+    .style("height", "100%")
+    .style("overflow", "auto");
+
+  // Optional: Back Button
+  wrap.append("button")
+    .attr("class", "btn btn--ghost")
+    .style("margin", "0 0 10px 0")
+    .text("back to timeline")
+    .on("click", showTimelineChart);
+
+  const table = wrap.append("table")
+    .style("width", "100%")
+    .style("border-collapse", "collapse")
+    .style("font-size", "13px");
+
+  const thead = table.append("thead");
+  const tbody = table.append("tbody");
+
+  const cols = ["race", "start area", "on course", "finish area", "have left"];
+  thead.append("tr")
+    .selectAll("th")
+    .data(cols)
+    .enter()
+    .append("th")
+    .text(d => d)
+    .style("text-align", "left")
+    .style("padding", "8px 8px")
+    .style("border-bottom", "1px solid rgba(31,42,68,.8)")
+    .style("color", "rgba(229,231,235,.9)");
+
+const tableKeys = [];
+
+
+
+// Rest wie gehabt
+["half","tenkm","fivekm","twofive","mara"].forEach(k => {
+  if (isRaceActive(k)) tableKeys.push(k);
+});
+
+const rows = tableKeys.map(k => {
+  const c = getRaceStatusCounts(k, timAbsMinutes);
+  return {
+    key: k,
+    race: racenames[k] || k,
+    waiting: c.waiting,
+    onCourse: c.onCourse,
+    finished: c.finishedInArea,
+    left: c.leftFinishArea
+  };
+});
+
+
+  const fmt = (v) => (v === null || v === undefined) ? "—" : String(Math.round(v));
+
+  const tr = tbody.selectAll("tr")
+    .data(rows)
+    .enter()
+    .append("tr")
+    .style("border-bottom", "1px solid rgba(31,42,68,.35)");
+
+  tr.selectAll("td")
+    .data(d => [d.race, fmt(d.waiting), fmt(d.onCourse), fmt(d.finished), fmt(d.left)])
+    .enter()
+    .append("td")
+    .text(d => d)
+    .style("padding", "8px 8px")
+    .style("color", "rgba(229,231,235,.88)");
+}
+
+const FINISH_DWELL_MIN = 6;
+
+function getRaceStatusCounts(raceKey, timAbsMinutes){
+
+  // vor Start: alles 0
+  if (timAbsMinutes < delay[raceKey]) {
+    return { waiting: 0, onCourse: 0, finishedInArea: 0, leftFinishArea: 0 };
+  }
+
+  // Zeitindex
+  let kk = Math.round(timAbsMinutes - delay[raceKey]);
+
+  // nach Ende: clamp auf letzten verfügbaren Stand (statt 0)
+  const lastK = (woist[raceKey] && woist[raceKey].length) ? (woist[raceKey].length - 1) : 0;
+  kk = Math.max(0, Math.min(kk, lastK));
+
+  const kkPrev = Math.max(0, kk - FINISH_DWELL_MIN);
+
+  const row0 = getWoistRow(raceKey, 0);
+  const rowK = getWoistRow(raceKey, kk);
+  const rowPrev = getWoistRow(raceKey, kkPrev);
+
+  if (!row0 || !rowK) {
+    return { waiting: 0, onCourse: 0, finishedInArea: 0, leftFinishArea: 0 };
+  }
+
+  const totalStarters = starterzahlen[raceKey];
+  const sumNow = sumRow(rowK);
+  const sumPrev = rowPrev ? sumRow(rowPrev) : totalStarters;
+
+  const waiting = rowK[0] || 0;
+  const onCourse = Math.max(0, sumNow - waiting);
+
+  const finishedTotalNow = Math.max(0, totalStarters - sumNow);
+  const finishedTotalPrev = Math.max(0, totalStarters - sumPrev);
+
+  const finishedInArea = Math.max(0, finishedTotalNow - finishedTotalPrev);
+  const leftFinishArea = finishedTotalPrev;
+
+  return { waiting, onCourse, finishedInArea, leftFinishArea };
+}
+
+
+function updateDistanceChart(timr) {
+  // Chart muss initialisiert sein
+  d3.select("#chartDistanceTitle").text(`Runners per 100m at ` +(convertMinutesToTime(Math.round(timr))))
+  
+  if (!distanceChart.svg) return;
+
+  const innerW = distanceChart.width - distanceChart.margin.left - distanceChart.margin.right;
+  const innerH = distanceChart.height - distanceChart.margin.top - distanceChart.margin.bottom;
+
+
+
+  // Hilfsfunktion: liefert die passende Menge-Array-Reihe (woist[...] pro timeindex)
+  function getDensityRow(raceKey, kk, timrLocal) {
+    // Wenn Zeitindex außerhalb -> null
+    if (!woist[raceKey] || kk < 0 || kk >= woist[raceKey].length) return null;
+
+ 
+
+    return woist[raceKey][kk];
+  }
+
+  // Sammeln + maxY bestimmen (nur sichtbare Races / gültige Reihen)
+  let globalMax = 0;
+const series = keys
+  .filter(isRaceActive)
+  .map(raceKey => {
+
+    const kk = Math.max(0, Math.round(timr - delay[raceKey]));
+    const row = getDensityRow(raceKey, kk, timr);
+
+    // Wenn kein Row vorhanden: leere Serie
+    if (!row) return { key: raceKey, values: [] };
+
+
+    // Hier spiegeln wir das fürs Chart, indem wir eine leere Serie liefern.
+
+
+    // Strecke: Anzahl Segmente aus coordinates[raceKey] ableiten
+    const segCount = Math.max(0, (coordinates[raceKey]?.length || 0) - 1);
+
+    // 25m Bins: i=0..segCount-1, Distanz in km: (i+1)/40
+    // Wir plotten bis 42km X-Skala; kürzere Races bleiben einfach kürzer.
+// 100m buckets = 4 * 25m Segmente
+const BUCKET_SIZE = 4;
+
+const values = [];
+
+for (let i = 0; i < segCount; i += BUCKET_SIZE) {
+
+  let bucketSum = 0;
+  let count = 0;
+
+  for (let j = 0; j < BUCKET_SIZE; j++) {
+    const v = row[i + j];
+    if (typeof v === "number" && isFinite(v)) {
+      bucketSum += v;
+      count++;
+    }
+  }
+
+  // Distanz: Mitte des 100m-Buckets
+  const distKm = ((i + BUCKET_SIZE / 2) / 40);
+
+  // runners per 100m → SUMME (fachlich korrekt)
+  const density = bucketSum;
+
+  // Start-/Endfenster wie auf der Map berücksichtigen
+if (
+  density > 0 &&
+  timr >= delay[raceKey] &&
+  timr <= cutoff[raceKey] + delay[raceKey]
+) {
+  values.push({ x: distKm, y: density });
+}
+
+  if (density > globalMax) globalMax = density;
+}
+
+
+    return { key: raceKey, values };
+  });
+
+  // Y-Domain anpassen (mit etwas Headroom)
+const yMax = 500
+distanceChart.y.domain([0, yMax]).range([innerH, 0]);
+
+  // Achsen updaten
+  distanceChart.x.range([0, innerW]);
+  distanceChart.xAxisG
+    .attr("transform", `translate(0,${innerH})`)
+    .call(d3.axisBottom(distanceChart.x).ticks(7).tickFormat(d => `${d} km`));
+
+  distanceChart.yAxisG
+    .call(d3.axisLeft(distanceChart.y).ticks(5));
+
+  // Line Generator (Lücken vermeiden: y=0 bleibt drin, aber falls man nulls hätte -> defined)
+  const line = d3.line()
+    .x(d => distanceChart.x(d.x))
+    .y(d => distanceChart.y(d.y))
+    .defined(d => d && typeof d.y === "number");
+
+  // Paths join
+  const paths = distanceChart.pathsG
+    .selectAll("path.distance-line")
+    .data(series, d => d.key);
+
+  paths.enter()
+    .append("path")
+    .attr("class", "distance-line")
+    .attr("fill", "none")
+    .attr("stroke-width", 2)
+    .merge(paths)
+    .attr("stroke", d => raceLineColor[d.key] || "#ffffff")
+    .attr("opacity", d => (d.values.length ? 0.95 : 0.15))
+    .attr("d", d => line(d.values));
+
+  paths.exit().remove();
+
+  
+}
+
+  /* =========================
+     Utility: Index Finder
+     ========================= */
+
+  function findIndices(arr) {
+    let firstIndex = -1;
+    let lastIndex = -1;
+
+    if (!arr) { arr = [0]; }
+
+    // Ersten und letzten Index mit arr[i] > 0 finden
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] > 0) {
+        if (firstIndex === -1) {
+          firstIndex = i;
+        }
+        lastIndex = i;
+      }
+    }
+
+    // Original-Guards beibehalten (Hinweis: `==NaN` ist in JS immer false; bleibt trotzdem unverändert)
+    if (lastIndex > coordinates.mara.length - 5 || lastIndex == NaN || lastIndex < 0) { lastIndex = 0; }
+    if (firstIndex > coordinates.mara.length - 5 || firstIndex == NaN || firstIndex < 0) { firstIndex = 0; }
+
+    return [ lastIndex, firstIndex ];
+  }
+
+  function findFirstAndLastNonZero(arr, key) {
+    let firstNonZero = null;
+    let lastNonZero = null;
+
+    if (arr) {
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i] !== 0) {
+          if (firstNonZero === null) {
+            firstNonZero = i;
+          }
+          lastNonZero = i;
+        }
+      }
+    } else {
+      firstNonZero = 0;
+      lastNonZero = 0;
+    }
+
+    if (firstNonZero == null || lastNonZero == null) {
+      firstNonZero = 0;
+      lastNonZero = 0;
+    }
+
+    if (lastNonZero > coordinates[key].length - 5) { lastNonZero = 0; }
+    return [ lastNonZero, firstNonZero ];
+  }
+
+  /* =========================
+     GeoJSON Builder
+     ========================= */
+
+  function coordinatesToGeoJSON(coordinates) {
+    // Inputvalidierung (Originalverhalten: wirft Fehler)
+    if (!Array.isArray(coordinates) || coordinates.some(coord => !Array.isArray(coord) || coord.length !== 2)) {
+      throw new Error('Invalid input: coordinates should be an array of [longitude, latitude] arrays.');
+    }
+
+    // Points als FeatureCollection
+    const featureCollection = {
+      type: 'FeatureCollection',
+      features: coordinates.map(coord => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: coord },
+        properties: { radius: 0, stroke: 0, text: "empty" }
+      }))
+    };
+
+    return featureCollection;
+  }
+
+ function generateColoredGeoJSON(coordinates) {
+  const colors = ['#ff0000', '#00ff00', '#ffff00', '#0000ff'];
+  let features = [];
+
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    let colorIndex = i % colors.length;
+
+    features.push({
+      type: "Feature",
+      properties: {
+        radius: 0,
+        width: 0,
+        stroke: colors[colorIndex],
+        segIndex: i,                 // <-- neu
+        km: (i + 0.5) / 40            // <-- neu (Segmentmitte, 25m Raster)
+      },
+      geometry: {
+        type: "LineString",
+        coordinates: [ coordinates[i], coordinates[i + 1] ]
+      }
+    });
+  }
+
+  return { type: "FeatureCollection", features: features };
+}
+
+  /* =========================
+     Map Initialisierung
+     ========================= */
+initDistanceChart();
+  function initialise_map() {
+   mapboxgl.accessToken = window.MAPBOX_TOKEN || "";
+
+
+    map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: coordinates.mara[0],
+      maxBounds: [
+  [coordinates.mara[100][0] - 0.06, coordinates.mara[100][1] - 0.09], // southwest
+  [coordinates.mara[100][0] + 0.06, coordinates.mara[100][1] + 0.045]  // northeast
+],
+      dragRotate: true,
+      zoom: 14,
+  minZoom: 13,     // 👈 minimaler Zoom
+  maxZoom: 16,     // 👈 maximaler Zoom
+
+  pitch: 45,
+  minPitch: 0,     // 👈 flach erlaubt
+  maxPitch: 75,    // 👈 maximaler Neigungswinkel
+      pitch: 45,
+      bearing: 0
+    });
+
+    linesize = 3;
+
+    map.on('load', function () {
+
+      // 3D Buildings Layer (Mapbox Composite)
+      map.addLayer({
+        id: '3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 13,
+        paint: {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15, 0,
+            15.05, ['get', 'height']
+          ],
+          'fill-extrusion-base': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15, 0,
+            15.05, ['get', 'min_height']
+          ],
+          'fill-extrusion-opacity': 0.6
+        }
+      });
+
+      // Popup ohne Close-Button für Hover
+      var popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false });
+
+      // Pro Race-Key: Linien- und Punktlayer erzeugen
+      for (const key in coordinates) {
+
+        map.addSource('line-segments' + key, {
+          type: "geojson",
+          data: linejsons[key]
+        });
+
+        map.addLayer({
+          id: "lines-layer-" + key,
+          type: "line",
+          source: "line-segments" + key,
+          paint: {
+            "line-width": ['get', 'width'],
+            "line-color": ['get', 'stroke']
+          }
+        });
+
+        map.addSource('circles' + key, {
+          type: "geojson",
+          data: pointjsons[key]
+        });
+
+        map.addLayer({
+          id: "circles-layer-" + key,
+          type: "circle",
+          source: "circles" + key,
+          paint: {
+            'circle-radius': ['get','radius'],
+            'circle-opacity': 0.9,
+            'circle-color': ['get', 'fill'],
+            'circle-stroke-color': 'black',
+            'circle-stroke-width': ['get', 'stroke']
+          }
+        });
+
+map.on('click', "lines-layer-" + key, (function(raceKey){
+  return function(e){
+    if (!e.features || !e.features.length) return;
+
+    const segIndex = e.features[0].properties && e.features[0].properties.segIndex;
+    if (segIndex === undefined || segIndex === null) return;
+
+    selectedProbe.raceKey = raceKey;
+    selectedProbe.segIndex = +segIndex;
+
+
+
+    updateTimelineChart(tim, selectedProbe.raceKey, selectedProbe.segIndex);
+  };
+})(key));
+
+        // Hover Popup für Punkte
+        map.on('mouseenter', "circles-layer-" + key, function (e) {
+          map.getCanvas().style.cursor = 'pointer';
+
+          var coordinates = e.features[0].geometry.coordinates.slice();
+          var text = e.features[0].properties.text;
+
+          popup.setLngLat(coordinates).setHTML(text).addTo(map);
+        });
+
+        map.on('mouseleave', "circles-layer-" + key, function () {
+          map.getCanvas().style.cursor = '';
+          popup.remove();
+        });
+      }
+    
+    });
+
+    // Map Controls
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: true, showZoom: true, showPitch: true }));
+
+    // Waypoints / Marker (Icons)
+    waypoints = [
+      { name:"Finish", coordinates: coordinates.mara[coordinates.mara.length-1], icon:'url(./finish.png)' },
+      { name:"Start", coordinates: coordinates.mara[0], icon:'url(./start.png)' },
+      { name:"42 elite", coordinates:[0,0], icon:'url(./42.png)' },
+      { name:"42 last", coordinates:[0,0], icon:'url(./42B.png)' },
+      { name:"21 elite", coordinates:[0,0], icon:'url(./21.png)' },
+      { name:"21 last", coordinates:[0,0], icon:'url(./21B.png)' },
+      { name:"10 km first", coordinates:[0,0], icon:'url(./10.png)' },
+      { name:"10 km last", coordinates:[0,0], icon:'url(./10B.png)' },
+      { name:"5 km first", coordinates:[0,0], icon:'url(./5.png)' },
+      { name:"5 km  last", coordinates:[0,0], icon:'url(./5B.png)' },
+      { name:"3 km first", coordinates:[0,0], icon:'url(./25.png)' },
+      { name:"3 km last", coordinates:[0,0], icon:'url(./25B.png)' },
+      { name:"diversion last", coordinates:[0,0], icon:'url(./42C.png)' }
+    ];
+
+    markers = [];
+
+    waypoints.forEach(waypoint => {
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.style.backgroundImage = waypoint.icon;
+      el.style.width = '32px';
+      el.style.height = '32px';
+      el.style.backgroundSize = '100%';
+// Start/Finish: Timeline durch Status-Tabelle ersetzen
+if (waypoint.name === "Start") {
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    showStatusTable("start");
+  });
+}
+if (waypoint.name === "Finish") {
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    showStatusTable("finish");
+  });
+}
+
+      temp = new mapboxgl.Marker(el, { offset: [0, -16] })
+        .setLngLat(waypoint.coordinates)
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(waypoint.name))
+        .addTo(map);
+
+      markers.push(temp);
+    });
+
+    // Map -> UI Sync (Inputs im Drawer)
+    map.on('zoom', function() {
+      d3.select('#gu3').property('value', Math.round(map.getZoom()*10)/10);
+
+      /*
+      if(map.getZoom() >14){linesize = 8}else{linesize=3}
+      for(i=0;i<linienliste.length;i++){
+        map.setPaintProperty(linienliste[i].name +"l", 'line-width', linesize);
+      }
+      */
+    });
+
+    map.on('pitch', function() {
+      d3.select('#gu1').property('value', 90 - Math.round(map.getPitch()));
+    });
+
+    map.on('move', function() {
+      d3.select('#gu2').property('value', Math.round(map.getBearing()));
+    });
+  }
+
+  function auditWoistSums() {
+  const keys = Object.keys(woist || {}).filter(k => Array.isArray(woist[k]));
+
+
+  function sumRow(row){
+    if (!row) return NaN;
+    let s = 0;
+    for (let i = 0; i < row.length; i++){
+      const v = row[i];
+      if (typeof v !== "number" || !isFinite(v)) return NaN;
+      s += v;
+    }
+    return s;
+  }
+
+  const report = [];
+
+  keys.forEach(raceKey => {
+    const series = woist[raceKey];
+    if (!series || !series.length) return;
+
+    // Referenz: kk=0
+    const s0 = sumRow(series[0]);
+
+    let minS = Infinity, maxS = -Infinity;
+    let jumpsUp = 0, badRows = 0, negatives = 0;
+    let lastS = null;
+    let worstUp = { kk: null, delta: 0, prev: null, cur: null };
+
+    for (let kk = 0; kk < series.length; kk++) {
+      const s = sumRow(series[kk]);
+
+      if (!isFinite(s)) { badRows++; continue; }
+      if (s < 0) negatives++;
+
+      if (s < minS) minS = s;
+      if (s > maxS) maxS = s;
+
+      if (lastS !== null) {
+        const d = s - lastS;
+
+        // "Nach oben Sprung" (Toleranz 0.5 gegen Rundung)
+        if (d > 0.5) {
+          jumpsUp++;
+          if (d > worstUp.delta) worstUp = { kk, delta: d, prev: lastS, cur: s };
+        }
+      }
+
+      lastS = s;
+    }
+
+    report.push({
+      raceKey,
+      s0,
+      minS,
+      maxS,
+      badRows,
+      negatives,
+      jumpsUp,
+      worstUp
+    });
+  });
+
+
+  // Detail: schlimmster Up-Jump je Race
+  report.forEach(r => {
+    if (r.worstUp && r.worstUp.kk !== null) {
+      console.warn(
+        `[AUDIT] ${r.raceKey}: biggest UP jump at kk=${r.worstUp.kk}  delta=${r.worstUp.delta}  ${r.worstUp.prev} -> ${r.worstUp.cur}`
+      );
+    }
+  });
+}
+
+// einmalig laufen lassen (nachdem woist geladen ist)
+auditWoistSums();
+
+
+</script>
+</html>
+
+
+<!-- =========================
+     TODOS
+     200+500+200 euro für 26 
+
+    
+     dwell time
+     finisch counter
+     started counter 
+     wave start visualization
+     width display
+     elevation map
+
+     ========================= -->

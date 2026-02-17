@@ -514,6 +514,10 @@ let activeRaces = {
   fivekm: false,
   twofive: false
 };
+const saved = loadSettings();
+Object.assign(delay, saved.delay);
+Object.assign(activeRaces, saved.activeRaces);
+applySettingsToUI();
 
 function minRoadWidthFromDensity(mengePer100m){
   // mengePer100m = Läufer pro 100 m
@@ -617,21 +621,9 @@ cutoff.marafull = cutoff.mara;
   };
 delay.marafull = delay.mara;
 const saved = loadSettings();
+applySettingsToUI();
 
 // delay aus Storage
-delay.mara = saved.delay.mara;
-delay.half = saved.delay.half;
-delay.tenkm = saved.delay.tenkm;
-delay.fivekm = saved.delay.fivekm;
-delay.twofive = saved.delay.twofive;
-delay.marafull = delay.mara;
-
-// activeRaces aus Storage
-activeRaces.mara = saved.activeRaces.mara;
-activeRaces.half = saved.activeRaces.half;
-activeRaces.tenkm = saved.activeRaces.tenkm;
-activeRaces.fivekm = saved.activeRaces.fivekm;
-activeRaces.twofive = saved.activeRaces.twofive;
 
   // UI initialisieren (IDs existieren jetzt im Settings Drawer)
   d3.select('#maratimset').property("value", convertMinutesToTime(delay.mara));

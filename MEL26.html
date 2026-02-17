@@ -514,10 +514,7 @@ let activeRaces = {
   fivekm: false,
   twofive: false
 };
-const saved = loadSettings();
-Object.assign(delay, saved.delay);
-Object.assign(activeRaces, saved.activeRaces);
-applySettingsToUI();
+
 
 function minRoadWidthFromDensity(mengePer100m){
   // mengePer100m = Läufer pro 100 m
@@ -592,12 +589,11 @@ function isRaceActive(key){
     mara: 8*60 + 360 + 60,
 
     half: 5*60 + 360 + 120,
-    tenkm: 5*60 + 360 + 90,
+    tenkm: 3*60 + 360 + 90,
     fivekm: 3*60 + 330 + 360,
     twofive: 3*60 + 360 + 360,
-    marafull: 60 + 330
+    
   };
-cutoff.marafull = cutoff.mara;
 
 
   // Aktuelle Simulationszeit (Minuten seit 00:00)
@@ -619,9 +615,7 @@ cutoff.marafull = cutoff.mara;
     twofive: 360 + 345,
     marafull: 60 + 330
   };
-delay.marafull = delay.mara;
-const saved = loadSettings();
-applySettingsToUI();
+
 
 // delay aus Storage
 
@@ -784,23 +778,28 @@ function applySettingsToUI(){
     if (el) el.checked = !!activeRaces[k];
   });
 }
+const saved = loadSettings();
+Object.assign(delay, saved.delay);
+Object.assign(activeRaces, saved.activeRaces);
 
+applySettingsToUI();
   /* =========================
      Kern: Zeitsteuerung
 
      ========================= */
+const lastVis = { mara: null, half: null, tenkm: null, fivekm: null, twofive: null };
+let lastRenderedMinute = null;
 
   function zeitgewahlt(timr) {
-  markers[3].setLngLat([0,0])
-    markers[4].setLngLat([0,0])
-      markers[5].setLngLat([0,0])
-        markers[6].setLngLat([0,0])
-          markers[7].setLngLat([0,0])
-     markers[8].setLngLat([0,0])
-       markers[9].setLngLat([0,0])
-         markers[10].setLngLat([0,0])
-           markers[11].setLngLat([0,0])
-    // Slider + Zeit-KPIs aktualisieren
+    const minute = Math.round(timr);
+if (minute === lastRenderedMinute) return;
+lastRenderedMinute = minute;
+
+ // Marker 3..11 zurücksetzen (2 ist "42 elite" und wird später gesetzt)
+for (let mi = 3; mi <= 11; mi++) {
+  if (markers[mi]) markers[mi].setLngLat([0, 0]);
+}
+   // Slider + Zeit-KPIs aktualisieren
     d3.select("#myRange").property("value", timr);
     d3.select('#uhr').text(convertMinutesToTime(Math.round(timr)));
     d3.select('#gunuhr').text(convertMinutesToTime(Math.max(0, Math.round(timr - delay.mara))));
@@ -810,15 +809,17 @@ function applySettingsToUI(){
     // Pro Rennen die Linien-/Punkt-Styles nach Menge (Runner/100m) setzen
     for (const key in coordinates) {
 
-  if (!isRaceActive(key)) {
-    // Map-Layer ausblenden
-    map.setLayoutProperty("lines-layer-" + key, "visibility", "none");
-    map.setLayoutProperty("circles-layer-" + key, "visibility", "none");
-    continue;
-  } else {
-    map.setLayoutProperty("lines-layer-" + key, "visibility", "visible");
-    map.setLayoutProperty("circles-layer-" + key, "visibility", "visible");
-  }
+const isOn = isRaceActive(key);
+const wantVis = isOn ? "visible" : "none";
+
+// Visibility nur setzen, wenn sich was geändert hat
+if (lastVis[key] !== wantVis) {
+  map.setLayoutProperty("lines-layer-" + key, "visibility", wantVis);
+  map.setLayoutProperty("circles-layer-" + key, "visibility", wantVis);
+  lastVis[key] = wantVis;
+}
+
+if (!isOn) continue;
 
   // bestehende Logik läuft unverändert weiter
 
@@ -899,8 +900,11 @@ bucketKm.toFixed(2) + " km <br>" +
       }
 
       // GeoJSON in Mapbox aktualisieren
-      map.getSource('line-segments' + key).setData(linejsons[key]);
-      map.getSource('circles' + key).setData(pointjsons[key]);
+      const lineSrc = map.getSource('line-segments' + key);
+const circSrc = map.getSource('circles' + key);
+if (lineSrc) lineSrc.setData(linejsons[key]);
+if (circSrc) circSrc.setData(pointjsons[key]);
+
 
       // Indizes (first/last non-zero) aus den Mengenarrays bestimmen
       filast = findIndices(woist[key][kkk]);
@@ -1348,7 +1352,7 @@ const tableKeys = [];
 
 
 // Rest wie gehabt
-["half","tenkm","fivekm","twofive","mara"].forEach(k => {
+["mara","half","tenkm","fivekm","twofive"].forEach(k => {
   if (isRaceActive(k)) tableKeys.push(k);
 });
 
@@ -1384,44 +1388,84 @@ const rows = tableKeys.map(k => {
 
 const FINISH_DWELL_MIN = 6;
 
-function getRaceStatusCounts(raceKey, timAbsMinutes){
+function getRaceStatusCounts(raceKey, timAbsMinutes) {
 
-  // vor Start: alles 0
-  if (timAbsMinutes < delay[raceKey]) {
-    return { waiting: 0, onCourse: 0, finishedInArea: 0, leftFinishArea: 0 };
-  }
+  const totalStarters = starterzahlen[raceKey] || 0;
 
-  // Zeitindex
+  // Zeit relativ zum Rennstart (Brutto-Zeit)
   let kk = Math.round(timAbsMinutes - delay[raceKey]);
 
-  // nach Ende: clamp auf letzten verfügbaren Stand (statt 0)
-  const lastK = (woist[raceKey] && woist[raceKey].length) ? (woist[raceKey].length - 1) : 0;
-  kk = Math.max(0, Math.min(kk, lastK));
-
-  const kkPrev = Math.max(0, kk - FINISH_DWELL_MIN);
-
-  const row0 = getWoistRow(raceKey, 0);
-  const rowK = getWoistRow(raceKey, kk);
-  const rowPrev = getWoistRow(raceKey, kkPrev);
-
-  if (!row0 || !rowK) {
-    return { waiting: 0, onCourse: 0, finishedInArea: 0, leftFinishArea: 0 };
+  // woist vorhanden?
+  if (!woist[raceKey] || woist[raceKey].length === 0) {
+    return {
+      waiting: 0,
+      onCourse: 0,
+      finishedInArea: 0,
+      leftFinishArea: 0
+    };
   }
 
-  const totalStarters = starterzahlen[raceKey];
-  const sumNow = sumRow(rowK);
-  const sumPrev = rowPrev ? sumRow(rowPrev) : totalStarters;
+  const lastK = woist[raceKey].length - 1;
 
-  const waiting = rowK[0] || 0;
-  const onCourse = Math.max(0, sumNow - waiting);
+  // 👉 WICHTIGER FIX:
+  // Nach Ende der woist-Daten ist das Rennen vorbei
+  if (kk > lastK) {
+    return {
+      waiting: 0,
+      onCourse: 0,
+      finishedInArea: 0,
+      leftFinishArea: totalStarters
+    };
+  }
 
+  // Vor dem Start
+  if (kk < 0) {
+    return {
+      waiting: totalStarters,
+      onCourse: 0,
+      finishedInArea: 0,
+      leftFinishArea: 0
+    };
+  }
+
+  // Aktueller Zustand
+  const rowNow = woist[raceKey][kk];
+
+  const waiting = rowNow[0];
+
+  let onCourse = 0;
+  for (let i = 1; i < rowNow.length; i++) {
+    onCourse += rowNow[i];
+  }
+
+  const sumNow = waiting + onCourse;
   const finishedTotalNow = Math.max(0, totalStarters - sumNow);
+
+  // Zielbereich = letzte 6 Minuten
+  const FINISH_DWELL_MIN = 6;
+  const kkPrev = Math.max(0, kk - FINISH_DWELL_MIN);
+
+  const rowPrev = woist[raceKey][kkPrev];
+
+  let sumPrev = 0;
+  for (let i = 0; i < rowPrev.length; i++) {
+    sumPrev += rowPrev[i];
+  }
+
   const finishedTotalPrev = Math.max(0, totalStarters - sumPrev);
 
-  const finishedInArea = Math.max(0, finishedTotalNow - finishedTotalPrev);
-  const leftFinishArea = finishedTotalPrev;
+  const finishedInArea =
+    Math.max(0, finishedTotalNow - finishedTotalPrev);
 
-  return { waiting, onCourse, finishedInArea, leftFinishArea };
+  const leftFinishArea =
+    Math.max(0, finishedTotalPrev);
+
+  return {
+    waiting,
+    onCourse,
+    finishedInArea,
+    leftFinishArea
+  };
 }
 
 

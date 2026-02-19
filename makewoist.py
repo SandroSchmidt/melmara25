@@ -65,8 +65,7 @@ for key,name,km in RACES:
     print("max delay:",hms(delay.max()))
 
     speed = km*1000/g
-    print("fastest km/h:",speed.max()*3.6)
-    print("slowest km/h:",speed.min()*3.6)
+  
 
     # -------- FASTEST / SLOWEST RUNNER --------
 

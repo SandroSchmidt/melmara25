@@ -57,7 +57,6 @@ for key,name,km in RACES:
     n=n[mask]
 
     delay=np.abs(g-n)
-
     # -------- STATS --------
 
     print("\n",name)
@@ -65,9 +64,24 @@ for key,name,km in RACES:
     print("min delay:",hms(delay.min()))
     print("max delay:",hms(delay.max()))
 
-    speed=km*1000/n
+    speed = km*1000/g
     print("fastest km/h:",speed.max()*3.6)
     print("slowest km/h:",speed.min()*3.6)
+
+    # -------- FASTEST / SLOWEST RUNNER --------
+
+    fastest_idx = np.argmax(speed)
+    slowest_idx = np.argmin(speed)
+
+    print("\nFastest runner:")
+    print("  Brutto:", hms(n[fastest_idx]))
+    print("  Netto:", hms(g[fastest_idx]))
+    print("  speed km/h:", speed[fastest_idx]*3.6)
+
+    print("\nSlowest runner:")
+    print("  Brutto:", hms(n[slowest_idx]))
+    print("  Netto:", hms(g[slowest_idx]))
+    print("  speed km/h:", speed[slowest_idx]*3.6)
 
     # -------- WOIST --------
 
@@ -75,7 +89,7 @@ for key,name,km in RACES:
     seg=int(math.ceil(dist/25))
     buckets=seg+1
 
-    finish=delay+n
+    finish=delay+g
     tmax=int(math.ceil(finish.max()/60))
 
     woist=[]
@@ -85,7 +99,7 @@ for key,name,km in RACES:
 
         waiting=(t<delay).sum()
 
-        active=(t>=delay)&(t<delay+n)
+        active=(t>=delay)&(t<delay+g)
         pos=(t-delay[active])*speed[active]
         pos=np.clip(pos,0,dist-1e-6)
 
